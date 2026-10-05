@@ -130,6 +130,14 @@ fun NavGraph(
                         showAddEditSheet = false
                         reminderToEdit = null
                     }
+                },
+                onDelete = { reminder ->
+                    coroutineScope.launch {
+                        repository.deleteReminder(reminder)
+                        sheetState.hide()
+                        showAddEditSheet = false
+                        reminderToEdit = null
+                    }
                 }
             )
         }

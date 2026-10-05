@@ -106,6 +106,12 @@ class TodayViewModel(
         }
     }
 
+    fun duplicateReminder(reminder: Reminder) {
+        viewModelScope.launch {
+            repository.duplicateReminder(reminder)
+        }
+    }
+
     fun toggleOverdue() {
         _isOverdueExpanded.value = !_isOverdueExpanded.value
     }

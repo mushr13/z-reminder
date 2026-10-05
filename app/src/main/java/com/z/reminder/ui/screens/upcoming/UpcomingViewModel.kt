@@ -40,4 +40,23 @@ class UpcomingViewModel(
             repository.markCompleted(id)
         }
     }
+
+    fun duplicateReminder(reminder: Reminder) {
+        viewModelScope.launch {
+            repository.duplicateReminder(reminder)
+        }
+    }
+
+    fun deleteReminder(reminder: Reminder) {
+        viewModelScope.launch {
+            repository.deleteReminder(reminder)
+        }
+    }
+
+    fun snoozeReminder(id: Long, minutes: Int = 10) {
+        viewModelScope.launch {
+            val snoozeUntil = System.currentTimeMillis() + (minutes * 60 * 1000L)
+            repository.snoozeReminder(id, snoozeUntil)
+        }
+    }
 }

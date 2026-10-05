@@ -4,6 +4,10 @@ import com.z.reminder.data.db.ReminderDao
 import com.z.reminder.data.model.PresetType
 import com.z.reminder.data.model.QuickPreset
 import com.z.reminder.data.model.Reminder
+import com.z.reminder.data.model.RepeatEngine
+import com.z.reminder.data.model.RepeatMode
+import com.z.reminder.data.model.RepeatRule
+import com.z.reminder.data.model.RepeatUnit
 import kotlinx.coroutines.flow.Flow
 import java.util.Calendar
 
@@ -33,7 +37,66 @@ class ReminderRepository(
 
     suspend fun deleteReminder(reminder: Reminder) = reminderDao.deleteReminder(reminder)
 
-    suspend fun markCompleted(id: Long) = reminderDao.markCompleted(id)
+    suspend fun markCompleted(id: Long) {
+        val reminder = reminderDao.getReminderById(id) ?: return
+        val now = System.currentTimeMillis()
+
+        if (reminder.hasRepeat) {
+            val rule = RepeatRule(
+                unit = RepeatUnit.valueOf(reminder.repeatUnit!!),
+                interval = reminder.repeatInterval,
+                weekdaysMask = reminder.repeatWeekdaysMask,
+                mode = try { RepeatMode.valueOf(reminder.repeatMode) } catch (e: Exception) { RepeatMode.FROM_DUE_TIME }
+            )
+
+            val nextDue = RepeatEngine.calculateNextDueTime(
+                currentDueEpoch = reminder.dueAt,
+                timezoneId = reminder.timezoneId,
+                rule = rule,
+                repeatEndAt = reminder.repeatEndAt,
+                completedAt = now,
+                now = now
+            )
+
+            // Save completed record in history
+            val completedHistoryRecord = reminder.copy(
+                id = 0,
+                status = "COMPLETED",
+                completedAt = now
+            )
+            reminderDao.insertReminder(completedHistoryRecord)
+
+            if (nextDue != null) {
+                // Advance active reminder to next occurrence
+                val nextOccurrence = reminder.copy(
+                    dueAt = nextDue,
+                    status = "SCHEDULED",
+                    snoozedUntil = null,
+                    snoozeCount = 0,
+                    completedAt = null
+                )
+                reminderDao.updateReminder(nextOccurrence)
+            } else {
+                // Repeat rule expired
+                reminderDao.markCompleted(id, now)
+            }
+        } else {
+            reminderDao.markCompleted(id, now)
+        }
+    }
+
+    suspend fun duplicateReminder(reminder: Reminder): Long {
+        val duplicate = reminder.copy(
+            id = 0,
+            title = if (reminder.title.endsWith("(Copy)")) reminder.title else "${reminder.title} (Copy)",
+            status = "SCHEDULED",
+            snoozedUntil = null,
+            snoozeCount = 0,
+            completedAt = null,
+            createdAt = System.currentTimeMillis()
+        )
+        return reminderDao.insertReminder(duplicate)
+    }
 
     suspend fun restoreCompleted(id: Long) = reminderDao.restoreCompleted(id)
 

@@ -1,5 +1,6 @@
 package com.z.reminder.ui.screens.addedit
 
+import android.app.DatePickerDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,13 +17,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.CalendarToday
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Flag
+import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,12 +39,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -49,12 +51,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.z.reminder.data.model.QuickPreset
 import com.z.reminder.data.model.Reminder
 import com.z.reminder.data.model.ReminderPriority
+import com.z.reminder.data.model.RepeatMode
+import com.z.reminder.data.model.RepeatUnit
 import com.z.reminder.data.repository.ReminderRepository
 import com.z.reminder.ui.theme.BottomSheetShape
 import com.z.reminder.ui.theme.ButtonShape
@@ -73,10 +78,12 @@ import java.util.Locale
 fun AddEditReminderSheet(
     onDismiss: () -> Unit,
     onSave: (Reminder) -> Unit,
+    onDelete: ((Reminder) -> Unit)? = null,
     existingReminder: Reminder? = null,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     repository: ReminderRepository = koinInject()
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var title by remember { mutableStateOf(existingReminder?.title ?: "") }
     var notes by remember { mutableStateOf(existingReminder?.notes ?: "") }
@@ -87,7 +94,6 @@ fun AddEditReminderSheet(
             if (existingReminder != null) {
                 timeInMillis = existingReminder.dueAt
             } else {
-                // Default: 1 hour from now
                 add(Calendar.HOUR_OF_DAY, 1)
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
@@ -98,19 +104,18 @@ fun AddEditReminderSheet(
     var selectedCalendar by remember { mutableStateOf(initialCal) }
     var presetFeedbackMessage by remember { mutableStateOf<String?>(null) }
 
-    val timePickerState = rememberTimePickerState(
-        initialHour = selectedCalendar.get(Calendar.HOUR_OF_DAY),
-        initialMinute = selectedCalendar.get(Calendar.MINUTE),
-        is24Hour = false
-    )
-
-    // Sync time picker changes to calendar
-    LaunchedEffect(timePickerState.hour, timePickerState.minute) {
-        val updated = (selectedCalendar.clone() as Calendar).apply {
-            set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-            set(Calendar.MINUTE, timePickerState.minute)
-        }
-        selectedCalendar = updated
+    // Repeat configuration
+    var selectedRepeatUnit by remember {
+        mutableStateOf(existingReminder?.repeatUnit?.let {
+            try { RepeatUnit.valueOf(it) } catch (e: Exception) { null }
+        })
+    }
+    var repeatInterval by remember { mutableIntStateOf(existingReminder?.repeatInterval ?: 1) }
+    var repeatWeekdaysMask by remember { mutableIntStateOf(existingReminder?.repeatWeekdaysMask ?: 0) }
+    var repeatMode by remember {
+        mutableStateOf(existingReminder?.repeatMode?.let {
+            try { RepeatMode.valueOf(it) } catch (e: Exception) { RepeatMode.FROM_DUE_TIME }
+        } ?: RepeatMode.FROM_DUE_TIME)
     }
 
     val quickPresets = remember { QuickPreset.defaultPresets() }
@@ -125,6 +130,7 @@ fun AddEditReminderSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 20.dp)
         ) {
             // Header Row
@@ -139,12 +145,24 @@ fun AddEditReminderSheet(
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.Rounded.Close,
-                        contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (existingReminder != null && onDelete != null) {
+                        IconButton(onClick = { onDelete(existingReminder) }) {
+                            Icon(
+                                imageVector = Icons.Rounded.Delete,
+                                contentDescription = "Delete",
+                                tint = OverdueRed
+                            )
+                        }
+                    }
+
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = "Close",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 
@@ -184,7 +202,7 @@ fun AddEditReminderSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Scheduled Date & Time Summary Card
+            // Scheduled Date & Time Summary Card (Tap to pick date/time)
             val dateFormat = SimpleDateFormat("EEEE, d MMMM", Locale.getDefault())
             val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
             val dateStr = dateFormat.format(Date(selectedCalendar.timeInMillis))
@@ -202,14 +220,36 @@ fun AddEditReminderSheet(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Date Clicker
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                DatePickerDialog(
+                                    context,
+                                    { _, year, month, day ->
+                                        val updated = (selectedCalendar.clone() as Calendar).apply {
+                                            set(Calendar.YEAR, year)
+                                            set(Calendar.MONTH, month)
+                                            set(Calendar.DAY_OF_MONTH, day)
+                                        }
+                                        selectedCalendar = updated
+                                    },
+                                    selectedCalendar.get(Calendar.YEAR),
+                                    selectedCalendar.get(Calendar.MONTH),
+                                    selectedCalendar.get(Calendar.DAY_OF_MONTH)
+                                ).show()
+                            }
+                            .padding(4.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Rounded.CalendarToday,
                             contentDescription = "Date",
                             tint = PrimaryViolet,
                             modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = dateStr,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
@@ -217,7 +257,28 @@ fun AddEditReminderSheet(
                         )
                     }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Time Clicker
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                android.app.TimePickerDialog(
+                                    context,
+                                    { _, hour, minute ->
+                                        val updated = (selectedCalendar.clone() as Calendar).apply {
+                                            set(Calendar.HOUR_OF_DAY, hour)
+                                            set(Calendar.MINUTE, minute)
+                                        }
+                                        selectedCalendar = updated
+                                    },
+                                    selectedCalendar.get(Calendar.HOUR_OF_DAY),
+                                    selectedCalendar.get(Calendar.MINUTE),
+                                    false
+                                ).show()
+                            }
+                            .padding(4.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Rounded.AccessTime,
                             contentDescription = "Time",
@@ -288,7 +349,121 @@ fun AddEditReminderSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // --- REPEAT ENGINE CONFIGURATION ---
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Rounded.Repeat,
+                        contentDescription = null,
+                        tint = PrimaryViolet,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Repeat",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                if (selectedRepeatUnit != null) {
+                    Text(
+                        text = "Clear",
+                        style = MaterialTheme.typography.labelMedium.copy(color = OverdueRed),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable { selectedRepeatUnit = null }
+                            .padding(4.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Repeat Unit Chips
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                val repeatOptions = listOf(
+                    null to "None",
+                    RepeatUnit.DAY to "Daily",
+                    RepeatUnit.WEEK to "Weekly",
+                    RepeatUnit.MONTH to "Monthly"
+                )
+
+                repeatOptions.forEach { (unit, label) ->
+                    val isSelected = selectedRepeatUnit == unit
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(ChipShape)
+                            .background(if (isSelected) PrimaryViolet else MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { selectedRepeatUnit = unit }
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                            ),
+                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
+            // Weekly Day Selector (If Weekly is selected)
+            if (selectedRepeatUnit == RepeatUnit.WEEK) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Repeat on days:",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                val dayNames = listOf(
+                    1 to "M", 2 to "T", 3 to "W", 4 to "T", 5 to "F", 6 to "S", 7 to "S"
+                )
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    dayNames.forEach { (dayVal, name) ->
+                        val isDaySelected = (repeatWeekdaysMask and (1 shl dayVal)) != 0
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (isDaySelected) PrimaryViolet else MaterialTheme.colorScheme.surfaceVariant)
+                                .clickable {
+                                    repeatWeekdaysMask = if (isDaySelected) {
+                                        repeatWeekdaysMask and (1 shl dayVal).inv()
+                                    } else {
+                                        repeatWeekdaysMask or (1 shl dayVal)
+                                    }
+                                }
+                        ) {
+                            Text(
+                                text = name,
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                color = if (isDaySelected) Color.White else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
 
             // Priority Toggle
             Row(
@@ -336,7 +511,7 @@ fun AddEditReminderSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(26.dp))
 
             // Action Buttons (Cancel / Save)
             Row(
@@ -361,6 +536,10 @@ fun AddEditReminderSheet(
                                 title = title.trim(),
                                 notes = notes.trim(),
                                 dueAt = selectedCalendar.timeInMillis,
+                                repeatUnit = selectedRepeatUnit?.name,
+                                repeatInterval = repeatInterval,
+                                repeatWeekdaysMask = repeatWeekdaysMask,
+                                repeatMode = repeatMode.name,
                                 priority = priority,
                                 nagIntervalMinutes = 30
                             )

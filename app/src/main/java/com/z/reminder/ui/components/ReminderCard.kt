@@ -1,9 +1,5 @@
 package com.z.reminder.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,14 +17,26 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Repeat
+import androidx.compose.material.icons.rounded.Snooze
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,9 +61,15 @@ fun ReminderCard(
     reminder: Reminder,
     onCompleteClick: () -> Unit,
     onClick: () -> Unit,
+    onDuplicateClick: (() -> Unit)? = null,
+    onDeleteClick: (() -> Unit)? = null,
+    onSnoozeClick: ((Int) -> Unit)? = null,
     modifier: Modifier = Modifier,
     isOverdue: Boolean = false
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+    var showSnoozeSubmenu by remember { mutableStateOf(false) }
+
     val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
     val formattedTime = timeFormat.format(Date(reminder.dueAt))
 
@@ -150,7 +164,7 @@ fun ReminderCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Badges Row (Time, Repeat, Place)
+                // Badges Row (Time, Repeat, Place, Snoozed count)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -202,6 +216,90 @@ fun ReminderCard(
                                 color = OfficeBlue
                             )
                         }
+                    }
+
+                    // Snooze count indicator (flag if snoozed 3+ times)
+                    if (reminder.snoozeCount > 0) {
+                        Text(
+                            text = "Snoozed ${reminder.snoozeCount}x",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = if (reminder.snoozeCount >= 3) OverdueRed else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+                }
+            }
+
+            // Quick Actions 3-dots Menu
+            Box {
+                IconButton(
+                    onClick = { showMenu = true },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.MoreVert,
+                        contentDescription = "Options",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = {
+                        showMenu = false
+                        showSnoozeSubmenu = false
+                    },
+                    modifier = Modifier.clip(RoundedCornerShape(16.dp))
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit") },
+                        leadingIcon = { Icon(Icons.Rounded.Edit, null) },
+                        onClick = {
+                            showMenu = false
+                            onClick()
+                        }
+                    )
+
+                    if (onSnoozeClick != null) {
+                        DropdownMenuItem(
+                            text = { Text("Snooze 10 min") },
+                            leadingIcon = { Icon(Icons.Rounded.Snooze, null) },
+                            onClick = {
+                                showMenu = false
+                                onSnoozeClick(10)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Snooze 1 hour") },
+                            leadingIcon = { Icon(Icons.Rounded.Snooze, null) },
+                            onClick = {
+                                showMenu = false
+                                onSnoozeClick(60)
+                            }
+                        )
+                    }
+
+                    if (onDuplicateClick != null) {
+                        DropdownMenuItem(
+                            text = { Text("Duplicate") },
+                            leadingIcon = { Icon(Icons.Rounded.ContentCopy, null) },
+                            onClick = {
+                                showMenu = false
+                                onDuplicateClick()
+                            }
+                        )
+                    }
+
+                    if (onDeleteClick != null) {
+                        DropdownMenuItem(
+                            text = { Text("Delete", color = OverdueRed) },
+                            leadingIcon = { Icon(Icons.Rounded.Delete, null, tint = OverdueRed) },
+                            onClick = {
+                                showMenu = false
+                                onDeleteClick()
+                            }
+                        )
                     }
                 }
             }

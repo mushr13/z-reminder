@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.z.reminder.RepeatRuleTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-05T19:30:22" hostname="DESKTOP-IQJTJ9K" time="0.044">
-  <properties/>
-  <testcase name="testWeeklyBitmaskCreation" classname="com.z.reminder.RepeatRuleTest" time="0.044"/>
-  <testcase name="testDefaultRepeatRuleParameters" classname="com.z.reminder.RepeatRuleTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

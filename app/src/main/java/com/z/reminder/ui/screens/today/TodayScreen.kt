@@ -203,6 +203,9 @@ fun TodayScreen(
                                             reminder = reminder,
                                             onCompleteClick = { viewModel.completeReminder(reminder.id) },
                                             onClick = { onEditReminder(reminder) },
+                                            onDuplicateClick = { viewModel.duplicateReminder(reminder) },
+                                            onDeleteClick = { viewModel.deleteReminder(reminder) },
+                                            onSnoozeClick = { mins -> viewModel.snoozeReminder(reminder.id, mins) },
                                             isOverdue = true
                                         )
                                     }
@@ -234,7 +237,10 @@ fun TodayScreen(
                     ReminderCard(
                         reminder = reminder,
                         onCompleteClick = { viewModel.completeReminder(reminder.id) },
-                        onClick = { onEditReminder(reminder) }
+                        onClick = { onEditReminder(reminder) },
+                        onDuplicateClick = { viewModel.duplicateReminder(reminder) },
+                        onDeleteClick = { viewModel.deleteReminder(reminder) },
+                        onSnoozeClick = { mins -> viewModel.snoozeReminder(reminder.id, mins) }
                     )
                 }
             }
@@ -254,7 +260,10 @@ fun TodayScreen(
                     ReminderCard(
                         reminder = reminder,
                         onCompleteClick = { viewModel.completeReminder(reminder.id) },
-                        onClick = { onEditReminder(reminder) }
+                        onClick = { onEditReminder(reminder) },
+                        onDuplicateClick = { viewModel.duplicateReminder(reminder) },
+                        onDeleteClick = { viewModel.deleteReminder(reminder) },
+                        onSnoozeClick = { mins -> viewModel.snoozeReminder(reminder.id, mins) }
                     )
                 }
             }
@@ -277,7 +286,10 @@ fun TodayScreen(
                         ReminderCard(
                             reminder = reminder,
                             onCompleteClick = { viewModel.completeReminder(reminder.id) },
-                            onClick = { onEditReminder(reminder) }
+                            onClick = { onEditReminder(reminder) },
+                            onDuplicateClick = { viewModel.duplicateReminder(reminder) },
+                            onDeleteClick = { viewModel.deleteReminder(reminder) },
+                            onSnoozeClick = { mins -> viewModel.snoozeReminder(reminder.id, mins) }
                         )
                     }
                 }
