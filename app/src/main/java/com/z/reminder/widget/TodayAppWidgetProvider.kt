@@ -81,10 +81,9 @@ class TodayAppWidgetProvider : AppWidgetProvider(), KoinComponent {
                     )
                     views.setOnClickPendingIntent(R.id.widget_root, appPendingIntent)
 
-                    // Click Add button -> Open Quick Add Sheet
-                    val addIntent = Intent(context, MainActivity::class.java).apply {
+                    // Click Add button -> Open Quick-Add Shortcut Dialog
+                    val addIntent = Intent(context, com.z.reminder.ui.screens.addedit.QuickAddDialogActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        putExtra("extra_action_add_reminder", true)
                     }
                     val addPendingIntent = PendingIntent.getActivity(
                         context,
@@ -94,28 +93,45 @@ class TodayAppWidgetProvider : AppWidgetProvider(), KoinComponent {
                     )
                     views.setOnClickPendingIntent(R.id.widget_btn_add, addPendingIntent)
 
-                    // Count Badge
-                    val count = todayReminders.size
-                    views.setTextViewText(R.id.widget_badge, "$count Due")
+                    // Big Task Count in Left Column
+                    views.setTextViewText(R.id.widget_count_num, todayReminders.size.toString())
 
-                    // Fill items
+                    // Fill items in Right Column
+                    val containerIds = listOf(
+                        R.id.widget_item_container_1,
+                        R.id.widget_item_container_2,
+                        R.id.widget_item_container_3,
+                        R.id.widget_item_container_4
+                    )
+                    val titleIds = listOf(
+                        R.id.widget_item_title_1,
+                        R.id.widget_item_title_2,
+                        R.id.widget_item_title_3,
+                        R.id.widget_item_title_4
+                    )
+                    val timeIds = listOf(
+                        R.id.widget_item_time_1,
+                        R.id.widget_item_time_2,
+                        R.id.widget_item_time_3,
+                        R.id.widget_item_time_4
+                    )
+
                     if (todayReminders.isEmpty()) {
                         views.setViewVisibility(R.id.widget_empty_text, View.VISIBLE)
-                        views.setViewVisibility(R.id.widget_item_1, View.GONE)
-                        views.setViewVisibility(R.id.widget_item_2, View.GONE)
-                        views.setViewVisibility(R.id.widget_item_3, View.GONE)
+                        for (id in containerIds) {
+                            views.setViewVisibility(id, View.GONE)
+                        }
                     } else {
                         views.setViewVisibility(R.id.widget_empty_text, View.GONE)
-
-                        val itemIds = listOf(R.id.widget_item_1, R.id.widget_item_2, R.id.widget_item_3)
-                        for (i in 0 until 3) {
+                        for (i in 0 until 4) {
                             if (i < todayReminders.size) {
                                 val rem = todayReminders[i]
                                 val timeStr = timeFormat.format(Date(rem.dueAt))
-                                views.setViewVisibility(itemIds[i], View.VISIBLE)
-                                views.setTextViewText(itemIds[i], "• $timeStr  ${rem.title}")
+                                views.setViewVisibility(containerIds[i], View.VISIBLE)
+                                views.setTextViewText(titleIds[i], rem.title)
+                                views.setTextViewText(timeIds[i], timeStr)
                             } else {
-                                views.setViewVisibility(itemIds[i], View.GONE)
+                                views.setViewVisibility(containerIds[i], View.GONE)
                             }
                         }
                     }

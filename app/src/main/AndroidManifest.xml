@@ -50,6 +50,14 @@
             android:launchMode="singleTask"
             android:theme="@style/Theme.ZReminder" />
 
+        <!-- Fast Shortcut Quick-Add Pop-up Dialog for Widget + tap -->
+        <activity
+            android:name=".ui.screens.addedit.QuickAddDialogActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ZReminder.QuickAddDialog"
+            android:windowSoftInputMode="adjustResize|stateAlwaysVisible"
+            android:excludeFromRecents="true" />
+
         <!-- Alarm Receiver for Exact Alarms and Nagging Loops -->
         <receiver
             android:name=".alarm.AlarmReceiver"

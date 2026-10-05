@@ -20,4 +20,5 @@ local.properties
 *.keystore
 !debug.keystore
 outputs/*.png
+.kotlin/
 
