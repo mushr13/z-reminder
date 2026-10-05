@@ -151,6 +151,18 @@ class NotificationHelper(private val context: Context) {
             "Scheduled for $dueStr"
         }
 
+        // Full Screen Alert Intent for lockscreen wake-up
+        val fullScreenIntent = Intent(context, com.z.reminder.alert.FullScreenAlertActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_USER_ACTION
+            putExtra(EXTRA_REMINDER_ID, reminder.id)
+        }
+        val fullScreenPendingIntent = PendingIntent.getActivity(
+            context,
+            reminder.id.toInt() * 10 + 3,
+            fullScreenIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("$titlePrefix${reminder.title}")
@@ -162,6 +174,11 @@ class NotificationHelper(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .addAction(0, "✓ Complete", completePendingIntent)
             .addAction(0, "💤 Snooze 10m", snoozePendingIntent)
+
+        if (reminder.alertStyle == com.z.reminder.data.model.AlertStyle.FULL_SCREEN.name ||
+            reminder.priority == com.z.reminder.data.model.ReminderPriority.HIGH.name) {
+            builder.setFullScreenIntent(fullScreenPendingIntent, true)
+        }
 
         notificationManager.notify(reminder.id.toInt(), builder.build())
     }

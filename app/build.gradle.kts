@@ -115,4 +115,5 @@ dependencies {
 tasks.withType<Test> {
     maxHeapSize = "384m"
     maxParallelForks = 1
+    jvmArgs("-Xshare:off")
 }

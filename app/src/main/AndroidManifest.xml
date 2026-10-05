@@ -38,6 +38,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Full-screen Lockscreen Alert Activity -->
+        <activity
+            android:name=".alert.FullScreenAlertActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:showOnLockScreen="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.ZReminder" />
+
         <!-- Alarm Receiver for Exact Alarms and Nagging Loops -->
         <receiver
             android:name=".alarm.AlarmReceiver"

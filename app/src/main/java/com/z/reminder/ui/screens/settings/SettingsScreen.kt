@@ -255,6 +255,67 @@ fun SettingsScreen(
                 }
             }
 
+            // Full-Screen Alert Screen Showcase & Simulator
+            val context = androidx.compose.ui.platform.LocalContext.current
+            Card(
+                shape = CardShape,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Rounded.NotificationsActive,
+                            contentDescription = null,
+                            tint = PrimaryViolet,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Full-Screen Alert Experience",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "8 curated color gradients with high-contrast WCAG 4.5:1 text, audio ramp, vibration, and quick action buttons.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    androidx.compose.material3.Button(
+                        onClick = {
+                            val intent = android.content.Intent(context, com.z.reminder.alert.FullScreenAlertActivity::class.java).apply {
+                                flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                                putExtra("extra_is_simulation", true)
+                            }
+                            context.startActivity(intent)
+                        },
+                        shape = com.z.reminder.ui.theme.ButtonShape,
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = PrimaryViolet),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.NotificationsActive,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Test Full-Screen Alert Screen",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+
             // About Card
             Card(
                 shape = CardShape,
