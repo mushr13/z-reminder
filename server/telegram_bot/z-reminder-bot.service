@@ -1,0 +1,16 @@
+[Unit]
+Description=Z Reminder Telegram Bot Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/z-reminder-bot
+Environment="Z_REMINDER_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN_HERE"
+Environment="ALLOWED_TELEGRAM_USER_ID=YOUR_TELEGRAM_ID"
+ExecStart=/usr/bin/python3 /opt/z-reminder-bot/bot.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

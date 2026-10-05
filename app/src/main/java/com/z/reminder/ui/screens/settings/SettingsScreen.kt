@@ -502,6 +502,117 @@ fun SettingsScreen(
                 }
             }
 
+            // Backup, Restore & Telegram Bridge Card
+            var backupFeedback by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+            var importText by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+            var showImportField by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+
+            Card(
+                shape = CardShape,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Rounded.Info,
+                            contentDescription = null,
+                            tint = PrimaryViolet,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Backup & Telegram Bot Bridge",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "100% offline portability. Export all active reminders to JSON or paste tasks exported from your Proxmox Telegram bot.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = {
+                                viewModel.exportBackup { json ->
+                                    val sendIntent = android.content.Intent().apply {
+                                        action = android.content.Intent.ACTION_SEND
+                                        putExtra(android.content.Intent.EXTRA_TEXT, json)
+                                        type = "text/plain"
+                                    }
+                                    val shareIntent = android.content.Intent.createChooser(sendIntent, "Export Z Reminders")
+                                    context.startActivity(shareIntent)
+                                    backupFeedback = "Export generated!"
+                                }
+                            },
+                            shape = com.z.reminder.ui.theme.ButtonShape,
+                            modifier = Modifier.weight(1f).height(44.dp)
+                        ) {
+                            Text("Export JSON", fontWeight = FontWeight.Bold)
+                        }
+
+                        androidx.compose.material3.Button(
+                            onClick = { showImportField = !showImportField },
+                            shape = com.z.reminder.ui.theme.ButtonShape,
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = PrimaryViolet),
+                            modifier = Modifier.weight(1f).height(44.dp)
+                        ) {
+                            Text("Import JSON", fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    if (showImportField) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        androidx.compose.material3.OutlinedTextField(
+                            value = importText,
+                            onValueChange = { importText = it },
+                            label = { Text("Paste JSON Array") },
+                            placeholder = { Text("[{\"title\":\"Sample\",\"dueAt\":...}]") },
+                            maxLines = 4,
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        androidx.compose.material3.Button(
+                            onClick = {
+                                if (importText.isNotBlank()) {
+                                    viewModel.importBackup(importText) { count ->
+                                        backupFeedback = "Successfully imported $count reminders!"
+                                        importText = ""
+                                        showImportField = false
+                                    }
+                                }
+                            },
+                            shape = com.z.reminder.ui.theme.ButtonShape,
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = com.z.reminder.ui.theme.SuccessGreen),
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Confirm Import", fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    backupFeedback?.let { msg ->
+                        Text(
+                            text = "✓ $msg",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = com.z.reminder.ui.theme.SuccessGreen
+                            ),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
+            }
+
             // About Card
             Card(
                 shape = CardShape,

@@ -105,6 +105,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("org.json:json:20240303")
 
     // Android Testing
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
@@ -113,7 +114,7 @@ dependencies {
 }
 
 tasks.withType<Test> {
-    maxHeapSize = "384m"
+    maxHeapSize = "192m"
     maxParallelForks = 1
-    jvmArgs("-Xshare:off")
+    jvmArgs("-Xshare:off", "-XX:MaxMetaspaceSize=128m")
 }

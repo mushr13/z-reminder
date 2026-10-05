@@ -42,5 +42,5 @@ val appModule = module {
     viewModel { TodayViewModel(get()) }
     viewModel { UpcomingViewModel(get()) }
     viewModel { CompletedViewModel(get()) }
-    viewModel { SettingsViewModel(get(), get(), get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get<ReminderRepository>()) }
 }

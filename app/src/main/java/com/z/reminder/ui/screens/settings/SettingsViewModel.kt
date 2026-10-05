@@ -11,6 +11,7 @@ import com.z.reminder.data.model.PlaceType
 import com.z.reminder.data.model.QuickPreset
 import com.z.reminder.data.model.Reminder
 import com.z.reminder.data.model.ReminderPriority
+import com.z.reminder.data.repository.ReminderRepository
 import com.z.reminder.data.repository.SettingsRepository
 import com.z.reminder.permission.PermissionHelper
 import com.z.reminder.permission.PermissionStatus
@@ -26,7 +27,8 @@ class SettingsViewModel(
     private val placeDao: PlaceDao,
     private val reminderDao: ReminderDao,
     private val alarmScheduler: AlarmScheduler,
-    private val permissionHelper: PermissionHelper
+    private val permissionHelper: PermissionHelper,
+    private val reminderRepository: ReminderRepository
 ) : ViewModel() {
 
     val themeMode: StateFlow<AppThemeMode> = settingsRepository.themeModeFlow
@@ -103,6 +105,20 @@ class SettingsViewModel(
                     )
                 )
             }
+        }
+    }
+
+    fun exportBackup(onExported: (String) -> Unit) {
+        viewModelScope.launch {
+            val json = reminderRepository.exportRemindersJson()
+            onExported(json)
+        }
+    }
+
+    fun importBackup(jsonStr: String, onImported: (Int) -> Unit) {
+        viewModelScope.launch {
+            val count = reminderRepository.importRemindersJson(jsonStr)
+            onImported(count)
         }
     }
 }

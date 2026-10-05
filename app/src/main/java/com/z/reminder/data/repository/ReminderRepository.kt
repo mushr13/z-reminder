@@ -208,4 +208,52 @@ class ReminderRepository(
 
         return targetTime
     }
+
+    suspend fun exportRemindersJson(): String {
+        val all = activeReminders.firstOrNull() ?: emptyList()
+        val array = org.json.JSONArray()
+        for (r in all) {
+            val obj = org.json.JSONObject().apply {
+                put("title", r.title)
+                put("notes", r.notes)
+                put("dueAt", r.dueAt)
+                put("priority", r.priority)
+                put("alertStyle", r.alertStyle)
+                put("backgroundId", r.backgroundId)
+                put("repeatUnit", r.repeatUnit)
+                put("repeatInterval", r.repeatInterval)
+                put("repeatWeekdaysMask", r.repeatWeekdaysMask)
+                put("repeatMode", r.repeatMode)
+            }
+            array.put(obj)
+        }
+        return array.toString(2)
+    }
+
+    suspend fun importRemindersJson(jsonStr: String): Int {
+        var count = 0
+        try {
+            val array = org.json.JSONArray(jsonStr)
+            for (i in 0 until array.length()) {
+                val obj = array.getJSONObject(i)
+                val reminder = Reminder(
+                    title = obj.getString("title"),
+                    notes = obj.optString("notes", ""),
+                    dueAt = obj.getLong("dueAt"),
+                    priority = obj.optString("priority", "NORMAL"),
+                    alertStyle = obj.optString("alertStyle", "FULL_SCREEN"),
+                    backgroundId = obj.optString("backgroundId", "lavender_dream"),
+                    repeatUnit = if (obj.has("repeatUnit") && !obj.isNull("repeatUnit")) obj.getString("repeatUnit") else null,
+                    repeatInterval = obj.optInt("repeatInterval", 1),
+                    repeatWeekdaysMask = obj.optInt("repeatWeekdaysMask", 0),
+                    repeatMode = obj.optString("repeatMode", "FROM_DUE_TIME")
+                )
+                insertReminder(reminder)
+                count++
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return count
+    }
 }
