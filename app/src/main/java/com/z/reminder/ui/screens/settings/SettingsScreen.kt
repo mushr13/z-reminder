@@ -348,6 +348,10 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
+                    var testScheduledMessage by androidx.compose.runtime.remember {
+                        androidx.compose.runtime.mutableStateOf<String?>(null)
+                    }
+
                     androidx.compose.material3.Button(
                         onClick = {
                             val intent = android.content.Intent(context, com.z.reminder.alert.FullScreenAlertActivity::class.java).apply {
@@ -369,10 +373,131 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Test Full-Screen Alert Screen",
+                            text = "Test Full-Screen Alert Screen Now",
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = Color.White
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = {
+                            viewModel.scheduleTestAlarmInOneMinute {
+                                testScheduledMessage = "Alarm set for 1 min from now! Lock your screen now to test."
+                            }
+                        },
+                        shape = com.z.reminder.ui.theme.ButtonShape,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Schedule,
+                            contentDescription = null,
+                            tint = PrimaryViolet
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Schedule 1-Min Live Lockscreen Test",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = PrimaryViolet
+                        )
+                    }
+
+                    testScheduledMessage?.let { msg ->
+                        Text(
+                            text = "✓ $msg",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = com.z.reminder.ui.theme.SuccessGreen
+                            ),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
+            }
+
+            // Permission Center & Honor MagicOS Hardening Card
+            val permissions = androidx.compose.runtime.remember { viewModel.getPermissions() }
+            Card(
+                shape = CardShape,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Rounded.Info,
+                            contentDescription = null,
+                            tint = PrimaryViolet,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Permission Center & Honor Hardening",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Honor MagicOS / Android 16 requires exact alarms, battery exemption, and auto-launch to guarantee 100% ringing reliability.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    permissions.forEach { perm ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = if (perm.isGranted) "✓ " else "⚠ ",
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = if (perm.isGranted) com.z.reminder.ui.theme.SuccessGreen else com.z.reminder.ui.theme.OverdueRed
+                                    )
+                                    Text(
+                                        text = perm.title,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                Text(
+                                    text = perm.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(start = 16.dp, top = 2.dp)
+                                )
+                            }
+
+                            androidx.compose.material3.OutlinedButton(
+                                onClick = {
+                                    try {
+                                        context.startActivity(perm.intentAction())
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                },
+                                shape = com.z.reminder.ui.theme.ButtonShape,
+                                modifier = Modifier
+                                    .padding(start = 8.dp)
+                                    .height(36.dp)
+                            ) {
+                                Text(
+                                    text = if (perm.isGranted) "Open" else "Grant",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                            }
+                        }
                     }
                 }
             }

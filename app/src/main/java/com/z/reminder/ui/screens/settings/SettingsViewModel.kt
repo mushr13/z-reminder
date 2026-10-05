@@ -2,11 +2,18 @@ package com.z.reminder.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.z.reminder.alarm.AlarmScheduler
 import com.z.reminder.data.db.PlaceDao
+import com.z.reminder.data.db.ReminderDao
+import com.z.reminder.data.model.AlertStyle
 import com.z.reminder.data.model.Place
 import com.z.reminder.data.model.PlaceType
 import com.z.reminder.data.model.QuickPreset
+import com.z.reminder.data.model.Reminder
+import com.z.reminder.data.model.ReminderPriority
 import com.z.reminder.data.repository.SettingsRepository
+import com.z.reminder.permission.PermissionHelper
+import com.z.reminder.permission.PermissionStatus
 import com.z.reminder.ui.theme.AppThemeMode
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +23,10 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
-    private val placeDao: PlaceDao
+    private val placeDao: PlaceDao,
+    private val reminderDao: ReminderDao,
+    private val alarmScheduler: AlarmScheduler,
+    private val permissionHelper: PermissionHelper
 ) : ViewModel() {
 
     val themeMode: StateFlow<AppThemeMode> = settingsRepository.themeModeFlow
@@ -56,6 +66,27 @@ class SettingsViewModel(
         return settingsRepository.getQuickPresets()
     }
 
+    fun getPermissions(): List<PermissionStatus> {
+        return permissionHelper.getPermissionStatuses()
+    }
+
+    fun scheduleTestAlarmInOneMinute(onScheduled: () -> Unit) {
+        viewModelScope.launch {
+            val dueAt = System.currentTimeMillis() + 60 * 1000L
+            val testReminder = Reminder(
+                title = "🔔 Live 1-Minute Alarm Test",
+                notes = "Lock your screen now to verify full-screen wake up, audio ramp, and vibration!",
+                dueAt = dueAt,
+                priority = ReminderPriority.HIGH.name,
+                alertStyle = AlertStyle.FULL_SCREEN.name,
+                backgroundId = "lavender_dream"
+            )
+            val id = reminderDao.insertReminder(testReminder)
+            alarmScheduler.scheduleExactAlarm(testReminder.copy(id = id))
+            onScheduled()
+        }
+    }
+
     fun saveOfficeWifi(wifiSsids: String) {
         viewModelScope.launch {
             val all = placeDao.getAllPlaces().firstOrNull() ?: emptyList()
@@ -75,4 +106,3 @@ class SettingsViewModel(
         }
     }
 }
-
