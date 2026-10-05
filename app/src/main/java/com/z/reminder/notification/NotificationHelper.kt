@@ -238,6 +238,54 @@ class NotificationHelper(private val context: Context) {
         notificationManager.notify(SUMMARY_NOTIFICATION_ID, summaryNotification)
     }
 
+    fun showOfficeArrivalNotification(placeName: String, taskCount: Int) {
+        val openAppIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val openPendingIntent = PendingIntent.getActivity(
+            context,
+            99901,
+            openAppIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val text = if (taskCount > 0) "You have $taskCount office reminders waiting" else "You've arrived at $placeName. Tap to add a task."
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_OFFICE)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("🏢 Arrived at $placeName")
+            .setContentText(text)
+            .setContentIntent(openPendingIntent)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        notificationManager.notify(99901, notification)
+    }
+
+    fun showOfficeCheckInNotification(placeName: String) {
+        val openAppIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val openPendingIntent = PendingIntent.getActivity(
+            context,
+            99902,
+            openAppIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_OFFICE)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("🏢 Office 1-Hour Check-in")
+            .setContentText("You've been at $placeName for an hour — any quick tasks to log?")
+            .setContentIntent(openPendingIntent)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        notificationManager.notify(99902, notification)
+    }
+
     fun cancelNotification(reminderId: Long) {
         notificationManager.cancel(reminderId.toInt())
     }
