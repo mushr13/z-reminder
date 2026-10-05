@@ -158,6 +158,44 @@ fun SettingsScreen(
                 }
             }
 
+            // Navigation Badges Card
+            val badgesEnabled by viewModel.badgesEnabled.collectAsState()
+            Card(
+                shape = CardShape,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Bottom Bar Badges",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Show count badges on Completed & Upcoming tabs",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = badgesEnabled,
+                        onCheckedChange = { viewModel.setBadgesEnabled(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = PrimaryViolet
+                        )
+                    )
+                }
+            }
+
             // Quick Presets Overview Card
             Card(
                 shape = CardShape,
@@ -324,13 +362,6 @@ fun SettingsScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "8 curated color gradients with high-contrast WCAG 4.5:1 text, audio ramp, vibration, and quick action buttons.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
                     Spacer(modifier = Modifier.height(14.dp))
 
                     var testScheduledMessage by androidx.compose.runtime.remember {
@@ -358,13 +389,13 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Test Full-Screen Alert Screen Now",
+                            text = "Test Full-Screen Alert Now",
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = Color.White
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     androidx.compose.material3.OutlinedButton(
                         onClick = {
@@ -384,7 +415,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Schedule 1-Min Live Lockscreen Test",
+                            text = "1-Min Lockscreen Test",
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                             color = PrimaryViolet
                         )

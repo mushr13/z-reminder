@@ -32,6 +32,7 @@ class SettingsRepository(private val context: Context) {
         val TELEGRAM_ENABLED = booleanPreferencesKey("telegram_enabled")
         val TELEGRAM_BOT_TOKEN = stringPreferencesKey("telegram_bot_token")
         val TELEGRAM_CHAT_ID = stringPreferencesKey("telegram_chat_id")
+        val BADGES_ENABLED = booleanPreferencesKey("badges_enabled")
     }
 
     val themeModeFlow: Flow<AppThemeMode> = context.dataStore.data.map { prefs ->
@@ -86,6 +87,16 @@ class SettingsRepository(private val context: Context) {
     suspend fun setTelegramChatId(chatId: String) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.TELEGRAM_CHAT_ID] = chatId
+        }
+    }
+
+    val badgesEnabledFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.BADGES_ENABLED] ?: true
+    }
+
+    suspend fun setBadgesEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.BADGES_ENABLED] = enabled
         }
     }
 

@@ -8,6 +8,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,6 +21,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.z.reminder.data.model.Reminder
 import com.z.reminder.data.repository.ReminderRepository
+import com.z.reminder.data.repository.SettingsRepository
 import com.z.reminder.ui.screens.addedit.AddEditReminderSheet
 import com.z.reminder.ui.screens.completed.CompletedScreen
 import com.z.reminder.ui.screens.settings.SettingsScreen
@@ -34,11 +36,16 @@ fun NavGraph(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     initialOpenAddSheet: Boolean = false,
-    repository: ReminderRepository = koinInject()
+    repository: ReminderRepository = koinInject(),
+    settingsRepository: SettingsRepository = koinInject()
 ) {
     val coroutineScope = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Today.route
+
+    val completedReminders by repository.completedReminders.collectAsState(initial = emptyList())
+    val upcomingReminders by repository.getUpcomingReminders().collectAsState(initial = emptyList())
+    val badgesEnabled by settingsRepository.badgesEnabledFlow.collectAsState(initial = true)
 
     var showAddEditSheet by remember { mutableStateOf(initialOpenAddSheet) }
     var reminderToEdit by remember { mutableStateOf<Reminder?>(null) }
@@ -51,6 +58,9 @@ fun NavGraph(
             if (currentRoute != Screen.Settings.route) {
                 ZBottomNav(
                     currentRoute = currentRoute,
+                    completedCount = completedReminders.size,
+                    upcomingCount = upcomingReminders.size,
+                    badgesEnabled = badgesEnabled,
                     onNavigateToToday = {
                         if (currentRoute != Screen.Today.route) {
                             navController.navigate(Screen.Today.route) {

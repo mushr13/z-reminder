@@ -68,6 +68,19 @@ class SettingsViewModel(
             initialValue = SettingsRepository.DEFAULT_CHAT_ID
         )
 
+    val badgesEnabled: StateFlow<Boolean> = settingsRepository.badgesEnabledFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
+    fun setBadgesEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setBadgesEnabled(enabled)
+        }
+    }
+
     fun setTelegramEnabled(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setTelegramEnabled(enabled)
