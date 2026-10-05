@@ -1,5 +1,6 @@
 package com.z.reminder.data.repository
 
+import com.z.reminder.alarm.AlarmScheduler
 import com.z.reminder.data.db.ReminderDao
 import com.z.reminder.data.model.PresetType
 import com.z.reminder.data.model.QuickPreset
@@ -8,11 +9,15 @@ import com.z.reminder.data.model.RepeatEngine
 import com.z.reminder.data.model.RepeatMode
 import com.z.reminder.data.model.RepeatRule
 import com.z.reminder.data.model.RepeatUnit
+import com.z.reminder.notification.NotificationHelper
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import java.util.Calendar
 
 class ReminderRepository(
-    private val reminderDao: ReminderDao
+    private val reminderDao: ReminderDao,
+    private val alarmScheduler: AlarmScheduler,
+    private val notificationHelper: NotificationHelper
 ) {
     val activeReminders: Flow<List<Reminder>> = reminderDao.getAllActiveReminders()
     val completedReminders: Flow<List<Reminder>> = reminderDao.getCompletedReminders()
@@ -31,15 +36,33 @@ class ReminderRepository(
 
     suspend fun getReminderById(id: Long): Reminder? = reminderDao.getReminderById(id)
 
-    suspend fun insertReminder(reminder: Reminder): Long = reminderDao.insertReminder(reminder)
+    suspend fun insertReminder(reminder: Reminder): Long {
+        val id = reminderDao.insertReminder(reminder)
+        val created = reminder.copy(id = id)
+        alarmScheduler.scheduleExactAlarm(created)
+        reconcilePersistentNotifications()
+        return id
+    }
 
-    suspend fun updateReminder(reminder: Reminder) = reminderDao.updateReminder(reminder)
+    suspend fun updateReminder(reminder: Reminder) {
+        reminderDao.updateReminder(reminder)
+        alarmScheduler.scheduleExactAlarm(reminder)
+        reconcilePersistentNotifications()
+    }
 
-    suspend fun deleteReminder(reminder: Reminder) = reminderDao.deleteReminder(reminder)
+    suspend fun deleteReminder(reminder: Reminder) {
+        alarmScheduler.cancelAlarm(reminder.id)
+        notificationHelper.cancelNotification(reminder.id)
+        reminderDao.deleteReminder(reminder)
+        reconcilePersistentNotifications()
+    }
 
     suspend fun markCompleted(id: Long) {
         val reminder = reminderDao.getReminderById(id) ?: return
         val now = System.currentTimeMillis()
+
+        alarmScheduler.cancelAlarm(id)
+        notificationHelper.cancelNotification(id)
 
         if (reminder.hasRepeat) {
             val rule = RepeatRule(
@@ -76,6 +99,7 @@ class ReminderRepository(
                     completedAt = null
                 )
                 reminderDao.updateReminder(nextOccurrence)
+                alarmScheduler.scheduleExactAlarm(nextOccurrence)
             } else {
                 // Repeat rule expired
                 reminderDao.markCompleted(id, now)
@@ -83,6 +107,7 @@ class ReminderRepository(
         } else {
             reminderDao.markCompleted(id, now)
         }
+        reconcilePersistentNotifications()
     }
 
     suspend fun duplicateReminder(reminder: Reminder): Long {
@@ -95,12 +120,37 @@ class ReminderRepository(
             completedAt = null,
             createdAt = System.currentTimeMillis()
         )
-        return reminderDao.insertReminder(duplicate)
+        val newId = reminderDao.insertReminder(duplicate)
+        val created = duplicate.copy(id = newId)
+        alarmScheduler.scheduleExactAlarm(created)
+        reconcilePersistentNotifications()
+        return newId
     }
 
-    suspend fun restoreCompleted(id: Long) = reminderDao.restoreCompleted(id)
+    suspend fun restoreCompleted(id: Long) {
+        reminderDao.restoreCompleted(id)
+        val restored = reminderDao.getReminderById(id)
+        if (restored != null) {
+            alarmScheduler.scheduleExactAlarm(restored)
+        }
+        reconcilePersistentNotifications()
+    }
 
-    suspend fun snoozeReminder(id: Long, snoozedUntil: Long) = reminderDao.snoozeReminder(id, snoozedUntil)
+    suspend fun snoozeReminder(id: Long, snoozedUntil: Long) {
+        reminderDao.snoozeReminder(id, snoozedUntil)
+        notificationHelper.cancelNotification(id)
+        val reminder = reminderDao.getReminderById(id)
+        if (reminder != null) {
+            val snoozed = reminder.copy(snoozedUntil = snoozedUntil, status = "SNOOZED")
+            alarmScheduler.scheduleExactAlarm(snoozed)
+        }
+        reconcilePersistentNotifications()
+    }
+
+    suspend fun reconcilePersistentNotifications() {
+        val active = activeReminders.firstOrNull() ?: emptyList()
+        notificationHelper.updatePersistentNotifications(active)
+    }
 
     /**
      * Calculates the scheduled time for a Quick Preset.

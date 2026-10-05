@@ -1,9 +1,11 @@
 package com.z.reminder.di
 
 import androidx.room.Room
+import com.z.reminder.alarm.AlarmScheduler
 import com.z.reminder.data.db.AppDatabase
 import com.z.reminder.data.repository.ReminderRepository
 import com.z.reminder.data.repository.SettingsRepository
+import com.z.reminder.notification.NotificationHelper
 import com.z.reminder.ui.screens.completed.CompletedViewModel
 import com.z.reminder.ui.screens.settings.SettingsViewModel
 import com.z.reminder.ui.screens.today.TodayViewModel
@@ -25,8 +27,10 @@ val appModule = module {
     single { get<AppDatabase>().reminderDao() }
     single { get<AppDatabase>().placeDao() }
 
-    // Repositories
-    single { ReminderRepository(get()) }
+    // Repositories & Helpers
+    single { NotificationHelper(androidContext()) }
+    single { AlarmScheduler(androidContext(), get()) }
+    single { ReminderRepository(get(), get(), get()) }
     single { SettingsRepository(androidContext()) }
 
     // ViewModels

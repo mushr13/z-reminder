@@ -38,6 +38,40 @@
             </intent-filter>
         </activity>
 
+        <!-- Alarm Receiver for Exact Alarms and Nagging Loops -->
+        <receiver
+            android:name=".alarm.AlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.z.reminder.ACTION_ALARM_FIRE" />
+                <action android:name="com.z.reminder.ACTION_NAG_FIRE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Boot & Time Rescheduling Receiver (Survives Reboot & DST changes) -->
+        <receiver
+            android:name=".alarm.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Notification Action Buttons (Complete & Snooze without app opening) -->
+        <receiver
+            android:name=".notification.NotificationActionReceiver"
+            android:exported="false" />
+
+        <!-- Notification Dismiss Safety (Re-posts persistent shade if swiped) -->
+        <receiver
+            android:name=".notification.NotificationDismissReceiver"
+            android:exported="false" />
+
     </application>
 
 </manifest>
