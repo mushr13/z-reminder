@@ -42,11 +42,6 @@ class ReminderRepository(
         val created = reminder.copy(id = id)
         alarmScheduler.scheduleExactAlarm(created)
         reconcilePersistentNotifications()
-        try {
-            telegramNotifier?.notifyReminderCreated(created)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
         return id
     }
 
@@ -157,6 +152,13 @@ class ReminderRepository(
         val active = activeReminders.firstOrNull() ?: emptyList()
         notificationHelper.updatePersistentNotifications(active)
         com.z.reminder.widget.TodayAppWidgetProvider.updateAllWidgets(notificationHelper.context)
+        for (item in active) {
+            if (item.isPinned) {
+                notificationHelper.showPinnedNotification(item)
+            } else {
+                notificationHelper.cancelPinnedNotification(item.id)
+            }
+        }
     }
 
     /**

@@ -12,7 +12,7 @@ import com.z.reminder.data.model.ReminderCategory
         Place::class,
         ReminderCategory::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

@@ -19,6 +19,7 @@ class AlarmScheduler(
     companion object {
         const val ACTION_ALARM_FIRE = "com.z.reminder.ACTION_ALARM_FIRE"
         const val ACTION_NAG_FIRE = "com.z.reminder.ACTION_NAG_FIRE"
+        const val ACTION_TELEGRAM_BACKUP_FIRE = "com.z.reminder.ACTION_TELEGRAM_BACKUP_FIRE"
         const val EXTRA_REMINDER_ID = "extra_reminder_id"
     }
 
@@ -150,9 +151,38 @@ class AlarmScheduler(
             nagIntent,
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
         )
-        if (pendingNag != null) {
-            alarmManager.cancel(pendingNag)
-            pendingNag.cancel()
+        // Cancel telegram backup alarm
+        val telegramIntent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_TELEGRAM_BACKUP_FIRE
+        }
+        val pendingTelegram = PendingIntent.getBroadcast(
+            context,
+            reminderId.toInt() + 500000,
+            telegramIntent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        if (pendingTelegram != null) {
+            alarmManager.cancel(pendingTelegram)
+            pendingTelegram.cancel()
+        }
+    }
+
+    fun scheduleTelegramBackup(reminderId: Long, delayMillis: Long = 60_000L) {
+        val triggerTime = System.currentTimeMillis() + delayMillis
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_TELEGRAM_BACKUP_FIRE
+            putExtra(EXTRA_REMINDER_ID, reminderId)
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            reminderId.toInt() + 500000,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+        } else {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
         }
     }
 

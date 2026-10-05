@@ -23,28 +23,34 @@ class AlarmReceiver : BroadcastReceiver(), KoinComponent {
         if (reminderId == -1L) return
 
         val isNag = intent.action == AlarmScheduler.ACTION_NAG_FIRE
+        val isTelegramBackup = intent.action == AlarmScheduler.ACTION_TELEGRAM_BACKUP_FIRE
         val pendingResult = goAsync()
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val reminder = reminderDao.getReminderById(reminderId)
                 if (reminder != null && reminder.status != "COMPLETED") {
-                    // Update state to FIRING
-                    reminderDao.updateReminder(reminder.copy(status = "FIRING"))
+                    if (isTelegramBackup) {
+                        // 1 minute has elapsed since phone alarm fired and task is still uncompleted!
+                        try {
+                            telegramNotifier.notifyReminderBackupAlert(reminder)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    } else {
+                        // Regular or nag alarm firing on phone
+                        reminderDao.updateReminder(reminder.copy(status = "FIRING"))
 
-                    // Show urgent / nag notification with complete & snooze actions
-                    notificationHelper.showFiringNotification(reminder, isNag = isNag)
+                        // Show urgent / nag notification with complete & snooze actions
+                        notificationHelper.showFiringNotification(reminder, isNag = isNag)
 
-                    // Also dispatch alert to user's Telegram Office Bot
-                    try {
-                        telegramNotifier.notifyReminderAlert(reminder)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                        // Schedule 1-minute backup alert to Telegram in case user misses phone alarm
+                        alarmScheduler.scheduleTelegramBackup(reminder.id, 60_000L)
+
+                        // Schedule next nag alarm (e.g. +30 mins, respecting quiet hours)
+                        val nagInterval = reminder.nagIntervalMinutes ?: 30
+                        alarmScheduler.scheduleNagAlarm(reminder, nagIntervalMinutes = nagInterval)
                     }
-
-                    // Schedule next nag alarm (e.g. +30 mins, respecting quiet hours)
-                    val nagInterval = reminder.nagIntervalMinutes ?: 30
-                    alarmScheduler.scheduleNagAlarm(reminder, nagIntervalMinutes = nagInterval)
                 }
             } finally {
                 pendingResult.finish()

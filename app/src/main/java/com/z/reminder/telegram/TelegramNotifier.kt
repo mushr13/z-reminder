@@ -76,32 +76,15 @@ class TelegramNotifier(private val settingsRepository: SettingsRepository) {
         }
     }
 
-    suspend fun notifyReminderCreated(reminder: Reminder) {
+    suspend fun notifyReminderBackupAlert(reminder: Reminder) {
         val dueZoned = Instant.ofEpochMilli(reminder.dueAt).atZone(ZoneId.systemDefault())
         val formattedTime = dueZoned.format(timeFormatter)
-        val formattedDate = dueZoned.format(dateFormatter)
 
         val sb = StringBuilder()
-        sb.append("🔔 *New Z Reminder Created*\n\n")
+        sb.append("🚨 *Z Reminder Alert (1-Min Backup)*\n\n")
         sb.append("📌 *${escapeMarkdown(reminder.title)}*\n")
-        sb.append("⏰ *Due:* $formattedTime ($formattedDate)\n")
-        if (!reminder.notes.isNullOrBlank()) {
-            sb.append("📝 *Notes:* ${escapeMarkdown(reminder.notes)}\n")
-        }
-        sb.append("\n_Synced from Z Reminder on Honor_")
-
-        sendMessage(sb.toString())
-    }
-
-    suspend fun notifyReminderAlert(reminder: Reminder) {
-        val sb = StringBuilder()
-        sb.append("🚨 *Z Reminder Alert!*\n\n")
-        sb.append("📌 *${escapeMarkdown(reminder.title)}*\n")
-        sb.append("⏰ *Status:* Due Now!\n")
-        if (!reminder.notes.isNullOrBlank()) {
-            sb.append("📝 *Notes:* ${escapeMarkdown(reminder.notes)}\n")
-        }
-        sb.append("\n_Ringing on phone lockscreen_")
+        sb.append("⏰ *Scheduled for:* $formattedTime (Due 1 min ago)\n")
+        sb.append("\n_Sent to Telegram because this reminder is still pending!_")
 
         sendMessage(sb.toString())
     }

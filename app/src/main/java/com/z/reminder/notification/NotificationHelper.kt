@@ -286,8 +286,51 @@ class NotificationHelper(val context: Context) {
         notificationManager.notify(99902, notification)
     }
 
+    fun showPinnedNotification(reminder: Reminder) {
+        val titleText = "📌 ${reminder.title}"
+        val dueStr = SimpleDateFormat("EEE, MMM d • hh:mm a", Locale.getDefault()).format(Date(reminder.dueAt))
+
+        val openAppIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val openPendingIntent = PendingIntent.getActivity(
+            context,
+            (reminder.id + 800000).toInt(),
+            openAppIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val completeIntent = Intent(context, NotificationActionReceiver::class.java).apply {
+            action = ACTION_COMPLETE
+            putExtra(EXTRA_REMINDER_ID, reminder.id)
+        }
+        val completePendingIntent = PendingIntent.getBroadcast(
+            context,
+            (reminder.id + 800000).toInt(),
+            completeIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_PERSISTENT)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(titleText)
+            .setContentText("Due $dueStr")
+            .setContentIntent(openPendingIntent)
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .addAction(R.drawable.ic_launcher_foreground, "Done", completePendingIntent)
+            .build()
+
+        notificationManager.notify((reminder.id + 800000).toInt(), notification)
+    }
+
+    fun cancelPinnedNotification(reminderId: Long) {
+        notificationManager.cancel((reminderId + 800000).toInt())
+    }
+
     fun cancelNotification(reminderId: Long) {
         notificationManager.cancel(reminderId.toInt())
+        cancelPinnedNotification(reminderId)
     }
 
     fun cancelAll() {

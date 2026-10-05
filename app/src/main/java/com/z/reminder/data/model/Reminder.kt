@@ -59,7 +59,8 @@ data class Reminder(
     val snoozedUntil: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val completedAt: Long? = null,
-    val snoozeCount: Int = 0
+    val snoozeCount: Int = 0,
+    val isPinned: Boolean = false
 ) {
     val isCompleted: Boolean get() = status == ReminderStatus.COMPLETED.name
     val isHighPriority: Boolean get() = priority == ReminderPriority.HIGH.name
