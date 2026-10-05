@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CalendarViewWeek
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Card
@@ -42,6 +43,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -138,6 +143,66 @@ fun TodayScreen(
                             contentDescription = "Settings",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                }
+            }
+
+            // Honor MagicOS Permission Health Check Alert Banner
+            val context = LocalContext.current
+            val missingPerm = uiState.missingPermission
+            AnimatedVisibility(visible = missingPerm != null) {
+                missingPerm?.let { perm ->
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFEF3C7)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp)
+                            .clickable {
+                                try {
+                                    val intent = perm.intentAction()
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.NotificationsActive,
+                                contentDescription = "Alert",
+                                tint = Color(0xFFD97706),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Permission Notice: ${perm.title}",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFF92400E)
+                                )
+                                Text(
+                                    text = "Tap here to grant it so alarms always ring on time.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color(0xFFB45309)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Fix",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = Color(0xFF92400E),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0xFFFDE68A))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -320,12 +385,29 @@ fun EmptyStateCard(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Rounded.CheckCircle,
-                contentDescription = null,
-                tint = PrimaryViolet.copy(alpha = 0.6f),
-                modifier = Modifier.size(42.dp)
-            )
+            Box(contentAlignment = Alignment.Center) {
+                // Soft radial glow behind checkmark empty state illustration
+                Box(
+                    modifier = Modifier
+                        .size(86.dp)
+                        .background(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    PrimaryViolet.copy(alpha = 0.35f),
+                                    PrimaryViolet.copy(alpha = 0.10f),
+                                    Color.Transparent
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                )
+                Icon(
+                    imageVector = Icons.Rounded.CheckCircle,
+                    contentDescription = null,
+                    tint = PrimaryViolet,
+                    modifier = Modifier.size(46.dp)
+                )
+            }
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = message,

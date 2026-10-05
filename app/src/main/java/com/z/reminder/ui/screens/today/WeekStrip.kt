@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -79,19 +80,42 @@ fun WeekStrip(
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 3.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(
-                            if (isSelected) PrimaryViolet
-                            else MaterialTheme.colorScheme.surface
-                        )
-                        .border(
-                            width = if (isToday && !isSelected) 1.5.dp else 0.dp,
-                            color = if (isToday && !isSelected) PrimaryViolet else Color.Transparent,
-                            shape = RoundedCornerShape(14.dp)
-                        )
-                        .clickable { onDaySelected(dayCal) }
-                        .padding(vertical = 10.dp)
                 ) {
+                    if (isSelected) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(58.dp)
+                                .background(
+                                    brush = Brush.radialGradient(
+                                        colors = listOf(
+                                            PrimaryViolet.copy(alpha = 0.50f),
+                                            PrimaryViolet.copy(alpha = 0.15f),
+                                            Color.Transparent
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                        )
+                    }
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                if (isSelected) PrimaryViolet
+                                else MaterialTheme.colorScheme.surface
+                            )
+                            .border(
+                                width = if (isToday && !isSelected) 1.5.dp else 0.dp,
+                                color = if (isToday && !isSelected) PrimaryViolet else Color.Transparent,
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            .clickable { onDaySelected(dayCal) }
+                            .padding(vertical = 10.dp)
+                    ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -131,4 +155,5 @@ fun WeekStrip(
             }
         }
     }
+}
 }

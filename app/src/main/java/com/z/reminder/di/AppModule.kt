@@ -40,7 +40,7 @@ val appModule = module {
     single { com.z.reminder.places.OfficePresenceMonitor(androidContext(), get(), get(), get(), get()) }
 
     // ViewModels
-    viewModel { TodayViewModel(get()) }
+    viewModel { TodayViewModel(get(), get()) }
     viewModel { UpcomingViewModel(get()) }
     viewModel { CompletedViewModel(get()) }
     viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get<ReminderRepository>(), get()) }

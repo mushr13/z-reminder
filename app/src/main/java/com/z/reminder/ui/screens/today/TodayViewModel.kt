@@ -21,25 +21,36 @@ data class TodayUiState(
     val isLaterExpanded: Boolean = false,
     val isWeekStripExpanded: Boolean = true,
     val searchQuery: String = "",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val missingPermission: com.z.reminder.permission.PermissionStatus? = null
 )
 
 class TodayViewModel(
-    private val repository: ReminderRepository
+    private val repository: ReminderRepository,
+    private val permissionHelper: com.z.reminder.permission.PermissionHelper
 ) : ViewModel() {
 
     private val _isOverdueExpanded = MutableStateFlow(true)
     private val _isLaterExpanded = MutableStateFlow(false)
     private val _isWeekStripExpanded = MutableStateFlow(true)
     private val _searchQuery = MutableStateFlow("")
+    private val _missingPermission = MutableStateFlow<com.z.reminder.permission.PermissionStatus?>(null)
+
+    init {
+        checkPermissions()
+    }
+
+    fun checkPermissions() {
+        val missing = permissionHelper.getPermissionStatuses().firstOrNull { it.isCritical && !it.isGranted }
+        _missingPermission.value = missing
+    }
 
     val uiState: StateFlow<TodayUiState> = combine(
         repository.activeReminders,
-        _isOverdueExpanded,
-        _isLaterExpanded,
-        _isWeekStripExpanded,
-        _searchQuery
-    ) { reminders, overdueExpanded, laterExpanded, weekStripExpanded, query ->
+        _searchQuery,
+        _missingPermission,
+        combine(_isOverdueExpanded, _isLaterExpanded, _isWeekStripExpanded) { o, l, w -> Triple(o, l, w) }
+    ) { reminders, query, missingPerm, (overdueExpanded, laterExpanded, weekStripExpanded) ->
         val now = System.currentTimeMillis()
         
         val todayStart = Calendar.getInstance().apply {
@@ -79,7 +90,8 @@ class TodayViewModel(
             isLaterExpanded = laterExpanded,
             isWeekStripExpanded = weekStripExpanded,
             searchQuery = query,
-            isLoading = false
+            isLoading = false,
+            missingPermission = missingPerm
         )
     }.stateIn(
         scope = viewModelScope,
