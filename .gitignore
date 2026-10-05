@@ -19,3 +19,5 @@ local.properties
 .navigation
 *.keystore
 !debug.keystore
+outputs/*.png
+

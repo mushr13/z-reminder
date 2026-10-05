@@ -48,6 +48,7 @@ fun ZBottomNav(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .padding(top = 18.dp)
             .navigationBarsPadding(),
         contentAlignment = Alignment.BottomCenter
     ) {

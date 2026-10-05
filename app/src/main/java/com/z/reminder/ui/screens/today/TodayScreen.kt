@@ -100,7 +100,7 @@ fun TodayScreen(
             ) {
                 Column {
                     Text(
-                        text = "$greeting ✨",
+                        text = greeting,
                         style = MaterialTheme.typography.displayLarge.copy(
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold

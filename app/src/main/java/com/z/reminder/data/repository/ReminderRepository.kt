@@ -17,7 +17,8 @@ import java.util.Calendar
 class ReminderRepository(
     private val reminderDao: ReminderDao,
     private val alarmScheduler: AlarmScheduler,
-    private val notificationHelper: NotificationHelper
+    private val notificationHelper: NotificationHelper,
+    private val telegramNotifier: com.z.reminder.telegram.TelegramNotifier? = null
 ) {
     val activeReminders: Flow<List<Reminder>> = reminderDao.getAllActiveReminders()
     val completedReminders: Flow<List<Reminder>> = reminderDao.getCompletedReminders()
@@ -41,6 +42,11 @@ class ReminderRepository(
         val created = reminder.copy(id = id)
         alarmScheduler.scheduleExactAlarm(created)
         reconcilePersistentNotifications()
+        try {
+            telegramNotifier?.notifyReminderCreated(created)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         return id
     }
 

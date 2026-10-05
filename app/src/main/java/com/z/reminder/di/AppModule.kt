@@ -30,8 +30,9 @@ val appModule = module {
     // Repositories & Helpers
     single { NotificationHelper(androidContext()) }
     single { AlarmScheduler(androidContext(), get()) }
-    single { ReminderRepository(get(), get(), get()) }
     single { SettingsRepository(androidContext()) }
+    single { com.z.reminder.telegram.TelegramNotifier(get()) }
+    single { ReminderRepository(get(), get(), get(), get()) }
     single { com.z.reminder.permission.PermissionHelper(androidContext()) }
 
     // Places & Presence
@@ -42,5 +43,5 @@ val appModule = module {
     viewModel { TodayViewModel(get()) }
     viewModel { UpcomingViewModel(get()) }
     viewModel { CompletedViewModel(get()) }
-    viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get<ReminderRepository>()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get<ReminderRepository>(), get()) }
 }

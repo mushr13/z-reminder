@@ -24,11 +24,14 @@ import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -55,6 +58,9 @@ fun SettingsScreen(
 ) {
     val currentTheme by viewModel.themeMode.collectAsState()
     val nagInterval by viewModel.nagInterval.collectAsState()
+    val telegramEnabled by viewModel.telegramEnabled.collectAsState()
+    val telegramBotToken by viewModel.telegramBotToken.collectAsState()
+    val telegramChatId by viewModel.telegramChatId.collectAsState()
     val presets = viewModel.getQuickPresets()
 
     Column(
@@ -112,7 +118,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Appearance Theme",
+                            text = "Theme",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -168,18 +174,11 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Active Quick Presets",
+                            text = "Quick Presets",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Smart auto-spacing (+20 min) is active when scheduling multiple reminders for the same slot.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -231,13 +230,6 @@ fun SettingsScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Reminders repeat every $nagInterval minutes until marked complete or snoozed.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Row(
@@ -283,13 +275,6 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Zero battery drain: Monitors Wi-Fi with 3-minute arrival debounce and 60-minute continuous stay check-in alert.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -502,10 +487,16 @@ fun SettingsScreen(
                 }
             }
 
-            // Backup, Restore & Telegram Bridge Card
-            var backupFeedback by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
-            var importText by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
-            var showImportField by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+            // Telegram Bot Link Card
+            var editingToken by androidx.compose.runtime.remember(telegramBotToken) {
+                androidx.compose.runtime.mutableStateOf(telegramBotToken)
+            }
+            var editingChatId by androidx.compose.runtime.remember(telegramChatId) {
+                androidx.compose.runtime.mutableStateOf(telegramChatId)
+            }
+            var telegramFeedback by androidx.compose.runtime.remember {
+                androidx.compose.runtime.mutableStateOf<Pair<Boolean, String>?>(null)
+            }
 
             Card(
                 shape = CardShape,
@@ -513,102 +504,101 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Rounded.Info,
-                            contentDescription = null,
-                            tint = PrimaryViolet,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Backup & Telegram Bot Bridge",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "100% offline portability. Export all active reminders to JSON or paste tasks exported from your Proxmox Telegram bot.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        androidx.compose.material3.OutlinedButton(
-                            onClick = {
-                                viewModel.exportBackup { json ->
-                                    val sendIntent = android.content.Intent().apply {
-                                        action = android.content.Intent.ACTION_SEND
-                                        putExtra(android.content.Intent.EXTRA_TEXT, json)
-                                        type = "text/plain"
-                                    }
-                                    val shareIntent = android.content.Intent.createChooser(sendIntent, "Export Z Reminders")
-                                    context.startActivity(shareIntent)
-                                    backupFeedback = "Export generated!"
-                                }
-                            },
-                            shape = com.z.reminder.ui.theme.ButtonShape,
-                            modifier = Modifier.weight(1f).height(44.dp)
-                        ) {
-                            Text("Export JSON", fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Rounded.Send,
+                                contentDescription = null,
+                                tint = PrimaryViolet,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Telegram Bot Link",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
 
-                        androidx.compose.material3.Button(
-                            onClick = { showImportField = !showImportField },
-                            shape = com.z.reminder.ui.theme.ButtonShape,
-                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = PrimaryViolet),
-                            modifier = Modifier.weight(1f).height(44.dp)
-                        ) {
-                            Text("Import JSON", fontWeight = FontWeight.Bold)
-                        }
+                        Switch(
+                            checked = telegramEnabled,
+                            onCheckedChange = { viewModel.setTelegramEnabled(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = PrimaryViolet
+                            )
+                        )
                     }
 
-                    if (showImportField) {
+                    if (telegramEnabled) {
                         Spacer(modifier = Modifier.height(12.dp))
+
                         androidx.compose.material3.OutlinedTextField(
-                            value = importText,
-                            onValueChange = { importText = it },
-                            label = { Text("Paste JSON Array") },
-                            placeholder = { Text("[{\"title\":\"Sample\",\"dueAt\":...}]") },
-                            maxLines = 4,
+                            value = editingToken,
+                            onValueChange = { editingToken = it },
+                            label = { Text("Bot Token") },
+                            singleLine = true,
                             shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        androidx.compose.material3.Button(
-                            onClick = {
-                                if (importText.isNotBlank()) {
-                                    viewModel.importBackup(importText) { count ->
-                                        backupFeedback = "Successfully imported $count reminders!"
-                                        importText = ""
-                                        showImportField = false
-                                    }
-                                }
-                            },
-                            shape = com.z.reminder.ui.theme.ButtonShape,
-                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = com.z.reminder.ui.theme.SuccessGreen),
-                            modifier = Modifier.align(Alignment.End)
-                        ) {
-                            Text("Confirm Import", fontWeight = FontWeight.Bold)
-                        }
-                    }
 
-                    backupFeedback?.let { msg ->
-                        Text(
-                            text = "✓ $msg",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = com.z.reminder.ui.theme.SuccessGreen
-                            ),
-                            modifier = Modifier.padding(top = 8.dp)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        androidx.compose.material3.OutlinedTextField(
+                            value = editingChatId,
+                            onValueChange = { editingChatId = it },
+                            label = { Text("Admin Chat ID") },
+                            singleLine = true,
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
                         )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            androidx.compose.material3.Button(
+                                onClick = {
+                                    viewModel.saveTelegramConfig(editingToken, editingChatId)
+                                    telegramFeedback = Pair(true, "Settings saved!")
+                                },
+                                shape = com.z.reminder.ui.theme.ButtonShape,
+                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = PrimaryViolet),
+                                modifier = Modifier.weight(1f).height(44.dp)
+                            ) {
+                                Text("Save Link", fontWeight = FontWeight.Bold)
+                            }
+
+                            androidx.compose.material3.OutlinedButton(
+                                onClick = {
+                                    viewModel.saveTelegramConfig(editingToken, editingChatId)
+                                    viewModel.sendTestTelegramMessage { success, msg ->
+                                        telegramFeedback = Pair(success, msg)
+                                    }
+                                },
+                                shape = com.z.reminder.ui.theme.ButtonShape,
+                                modifier = Modifier.weight(1f).height(44.dp)
+                            ) {
+                                Text("Send Test", fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        telegramFeedback?.let { (success, msg) ->
+                            Text(
+                                text = if (success) "✓ $msg" else "⚠ $msg",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (success) com.z.reminder.ui.theme.SuccessGreen else com.z.reminder.ui.theme.OverdueRed
+                                ),
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
                     }
                 }
             }

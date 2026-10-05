@@ -13,6 +13,7 @@ import com.z.reminder.data.model.Reminder
 import com.z.reminder.data.model.ReminderPriority
 import com.z.reminder.data.repository.ReminderRepository
 import com.z.reminder.data.repository.SettingsRepository
+import com.z.reminder.telegram.TelegramNotifier
 import com.z.reminder.permission.PermissionHelper
 import com.z.reminder.permission.PermissionStatus
 import com.z.reminder.ui.theme.AppThemeMode
@@ -28,7 +29,8 @@ class SettingsViewModel(
     private val reminderDao: ReminderDao,
     private val alarmScheduler: AlarmScheduler,
     private val permissionHelper: PermissionHelper,
-    private val reminderRepository: ReminderRepository
+    private val reminderRepository: ReminderRepository,
+    private val telegramNotifier: TelegramNotifier
 ) : ViewModel() {
 
     val themeMode: StateFlow<AppThemeMode> = settingsRepository.themeModeFlow
@@ -44,6 +46,56 @@ class SettingsViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = 30
         )
+
+    val telegramEnabled: StateFlow<Boolean> = settingsRepository.telegramEnabledFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
+    val telegramBotToken: StateFlow<String> = settingsRepository.telegramBotTokenFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = SettingsRepository.DEFAULT_BOT_TOKEN
+        )
+
+    val telegramChatId: StateFlow<String> = settingsRepository.telegramChatIdFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = SettingsRepository.DEFAULT_CHAT_ID
+        )
+
+    fun setTelegramEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setTelegramEnabled(enabled)
+        }
+    }
+
+    fun saveTelegramConfig(token: String, chatId: String) {
+        viewModelScope.launch {
+            settingsRepository.setTelegramBotToken(token.trim())
+            settingsRepository.setTelegramChatId(chatId.trim())
+        }
+    }
+
+    fun sendTestTelegramMessage(onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch {
+            val result = telegramNotifier.sendMessage(
+                "✅ *Z Reminder Connected to Office Bot!*\n\n" +
+                "Test notification received successfully from your Honor phone.\n" +
+                "Whenever you set a reminder, you'll get a ping here too!"
+            )
+            if (result.isSuccess) {
+                onResult(true, "Test notification sent to Office Bot successfully!")
+            } else {
+                val err = result.exceptionOrNull()?.message ?: "Unknown error"
+                onResult(false, "Failed: $err")
+            }
+        }
+    }
 
     val places: StateFlow<List<Place>> = placeDao.getAllPlaces()
         .stateIn(

@@ -16,6 +16,7 @@ class AlarmReceiver : BroadcastReceiver(), KoinComponent {
     private val reminderDao: ReminderDao by inject()
     private val notificationHelper: NotificationHelper by inject()
     private val alarmScheduler: AlarmScheduler by inject()
+    private val telegramNotifier: com.z.reminder.telegram.TelegramNotifier by inject()
 
     override fun onReceive(context: Context, intent: Intent) {
         val reminderId = intent.getLongExtra(AlarmScheduler.EXTRA_REMINDER_ID, -1L)
@@ -33,6 +34,13 @@ class AlarmReceiver : BroadcastReceiver(), KoinComponent {
 
                     // Show urgent / nag notification with complete & snooze actions
                     notificationHelper.showFiringNotification(reminder, isNag = isNag)
+
+                    // Also dispatch alert to user's Telegram Office Bot
+                    try {
+                        telegramNotifier.notifyReminderAlert(reminder)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
 
                     // Schedule next nag alarm (e.g. +30 mins, respecting quiet hours)
                     val nagInterval = reminder.nagIntervalMinutes ?: 30
