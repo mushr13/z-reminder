@@ -24,13 +24,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val openAdd = intent?.getBooleanExtra("extra_action_add_reminder", false) ?: false
+
         setContent {
             val themeMode by settingsRepository.themeModeFlow.collectAsState(initial = AppThemeMode.SYSTEM)
 
             ZReminderTheme(themeMode = themeMode) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
-                    NavGraph(navController = navController)
+                    NavGraph(navController = navController, initialOpenAddSheet = openAdd)
                 }
             }
         }

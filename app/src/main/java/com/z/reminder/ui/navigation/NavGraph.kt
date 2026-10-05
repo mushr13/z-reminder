@@ -30,13 +30,14 @@ import org.koin.compose.koinInject
 fun NavGraph(
     navController: NavHostController,
     modifier: Modifier = Modifier,
+    initialOpenAddSheet: Boolean = false,
     repository: ReminderRepository = koinInject()
 ) {
     val coroutineScope = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Today.route
 
-    var showAddEditSheet by remember { mutableStateOf(false) }
+    var showAddEditSheet by remember { mutableStateOf(initialOpenAddSheet) }
     var reminderToEdit by remember { mutableStateOf<Reminder?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 

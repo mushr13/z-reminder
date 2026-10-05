@@ -150,6 +150,7 @@ class ReminderRepository(
     suspend fun reconcilePersistentNotifications() {
         val active = activeReminders.firstOrNull() ?: emptyList()
         notificationHelper.updatePersistentNotifications(active)
+        com.z.reminder.widget.TodayAppWidgetProvider.updateAllWidgets(notificationHelper.context)
     }
 
     /**

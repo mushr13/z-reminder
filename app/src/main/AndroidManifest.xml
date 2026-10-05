@@ -83,6 +83,30 @@
             android:name=".notification.NotificationDismissReceiver"
             android:exported="false" />
 
+        <!-- Home Screen App Widget (Today's Tasks) -->
+        <receiver
+            android:name=".widget.TodayAppWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_today_info" />
+        </receiver>
+
+        <!-- Quick Settings Status Bar Shade Tile for One-Tap Add -->
+        <service
+            android:name=".tile.QuickAddTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="Add Reminder"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>
