@@ -1,0 +1,65 @@
+com.z.reminder.app-material-icons-core-release-0 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\00bb047169c9c467692a54412207662e\transformed\material-icons-core-release\res
+com.z.reminder.app-navigation-runtime-2.8.3-1 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\0299e1efea07f19f0f35155fffb40979\transformed\navigation-runtime-2.8.3\res
+com.z.reminder.app-emoji2-views-helper-1.3.0-2 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\02e7de947391d399a6ffe1fdd0551f4e\transformed\emoji2-views-helper-1.3.0\res
+com.z.reminder.app-startup-runtime-1.1.1-3 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\059490d0c08e86141938665b655496d0\transformed\startup-runtime-1.1.1\res
+com.z.reminder.app-ui-graphics-release-4 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\12ded6f46a1788dd8d1fea1cceda3e77\transformed\ui-graphics-release\res
+com.z.reminder.app-fragment-ktx-1.6.2-5 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\139a6f162ce5c3bf7c9a254195bce8c7\transformed\fragment-ktx-1.6.2\res
+com.z.reminder.app-lifecycle-livedata-core-2.8.6-6 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\15d07adf06c750801f0566f8c66974c4\transformed\lifecycle-livedata-core-2.8.6\res
+com.z.reminder.app-fragment-1.6.2-7 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\1724d45a6bdcdfa75c35c586228945c6\transformed\fragment-1.6.2\res
+com.z.reminder.app-room-runtime-2.6.1-8 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\1c1b836b9815395151d55a80f8481d0b\transformed\room-runtime-2.6.1\res
+com.z.reminder.app-datastore-release-9 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\1d170dbe9e4765b568f10a4999a1f0cd\transformed\datastore-release\res
+com.z.reminder.app-ui-release-10 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\20a72564079599ecda6b6ed2e409922b\transformed\ui-release\res
+com.z.reminder.app-ui-tooling-preview-release-11 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\20bd0173ee3fbd17301447422c85e7d7\transformed\ui-tooling-preview-release\res
+com.z.reminder.app-lifecycle-viewmodel-release-12 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\21c49f2b69e77e115b926f4710d7c85e\transformed\lifecycle-viewmodel-release\res
+com.z.reminder.app-lifecycle-runtime-release-13 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\265cc87e808888b7e6f31f5534d6f044\transformed\lifecycle-runtime-release\res
+com.z.reminder.app-profileinstaller-1.3.1-14 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\269231ba3590ad26bf6210ebac9e6113\transformed\profileinstaller-1.3.1\res
+com.z.reminder.app-navigation-common-2.8.3-15 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\2914f453c0a271e857c68beaff679099\transformed\navigation-common-2.8.3\res
+com.z.reminder.app-savedstate-1.2.1-16 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\299057c42fadbe676c53a53f33504fba\transformed\savedstate-1.2.1\res
+com.z.reminder.app-datastore-preferences-release-17 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\325330ed2852b860ef51d13c01ca4fbc\transformed\datastore-preferences-release\res
+com.z.reminder.app-ui-unit-release-18 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\32750f470146a517c7feff1b3268b968\transformed\ui-unit-release\res
+com.z.reminder.app-lifecycle-viewmodel-compose-release-19 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\357551f04d906f69a6edae92292bc829\transformed\lifecycle-viewmodel-compose-release\res
+com.z.reminder.app-core-ktx-1.13.1-20 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\3b4791b20a6ecfabafa57240470a3a98\transformed\core-ktx-1.13.1\res
+com.z.reminder.app-appcompat-resources-1.6.1-21 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\3d216bb79a454cc1ab6707ef7981db07\transformed\appcompat-resources-1.6.1\res
+com.z.reminder.app-activity-compose-1.9.3-22 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\476e8336f019a8bf7a0031031174dbe0\transformed\activity-compose-1.9.3\res
+com.z.reminder.app-annotation-experimental-1.4.1-23 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\530a643bb6d64a2d307a24f8a7858dff\transformed\annotation-experimental-1.4.1\res
+com.z.reminder.app-activity-1.9.3-24 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\5635cd7667a37e788abdfd6f61bfe26f\transformed\activity-1.9.3\res
+com.z.reminder.app-core-1.13.1-25 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\5ec6353a5620445f8f24c12f16042bbe\transformed\core-1.13.1\res
+com.z.reminder.app-navigation-common-ktx-2.8.3-26 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\6704b66b7bdfa0a58766702de595bea7\transformed\navigation-common-ktx-2.8.3\res
+com.z.reminder.app-lifecycle-viewmodel-ktx-2.8.6-27 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\673ab854301a2263955aa9fd00ab25b8\transformed\lifecycle-viewmodel-ktx-2.8.6\res
+com.z.reminder.app-ui-geometry-release-28 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\6a3eabb7975ee70159150df299965879\transformed\ui-geometry-release\res
+com.z.reminder.app-material-ripple-release-29 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\6cd81cf46e64fea5d9622efce16cc688\transformed\material-ripple-release\res
+com.z.reminder.app-graphics-path-1.0.1-30 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\6e5a15d02c6626e1c6c5d69562a57edc\transformed\graphics-path-1.0.1\res
+com.z.reminder.app-animation-release-31 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\7584688ec463f3ceb2dbaea9d87a14ef\transformed\animation-release\res
+com.z.reminder.app-lifecycle-livedata-2.8.6-32 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\7e91ccf09c1e22d5ed3f7fa3f499a990\transformed\lifecycle-livedata-2.8.6\res
+com.z.reminder.app-runtime-saveable-release-33 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\7f78795d9a79a25743a01bda04d95b88\transformed\runtime-saveable-release\res
+com.z.reminder.app-lifecycle-process-2.8.6-34 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\81bb065b8c3d7637a2eaa8199d4b8af5\transformed\lifecycle-process-2.8.6\res
+com.z.reminder.app-foundation-layout-release-35 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\8352e584ed7c6e169ca6f4461664a5f5\transformed\foundation-layout-release\res
+com.z.reminder.app-foundation-release-36 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\8786b848ac9651061bdeb35f5205e13c\transformed\foundation-release\res
+com.z.reminder.app-datastore-core-release-37 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\8b82fbaa79ead2826632a093c7567cb9\transformed\datastore-core-release\res
+com.z.reminder.app-animation-core-release-38 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\95394de254e7e87b3d0777e1c9998284\transformed\animation-core-release\res
+com.z.reminder.app-customview-poolingcontainer-1.0.0-39 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\9c67edd47f0202a648c2f2b11d97e8ed\transformed\customview-poolingcontainer-1.0.0\res
+com.z.reminder.app-appcompat-1.6.1-40 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\a84c0a4cc16a38a4d0beb20e1b975d9e\transformed\appcompat-1.6.1\res
+com.z.reminder.app-sqlite-framework-2.4.0-41 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\a8ab5e6e16f764947d181e839f5d01f2\transformed\sqlite-framework-2.4.0\res
+com.z.reminder.app-lifecycle-livedata-core-ktx-2.8.6-42 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\aaf754be934730bb0c4c39132e172ad0\transformed\lifecycle-livedata-core-ktx-2.8.6\res
+com.z.reminder.app-savedstate-ktx-1.2.1-43 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\b4b9b2d7c9f8c81db462e9f42d6c4a05\transformed\savedstate-ktx-1.2.1\res
+com.z.reminder.app-material-icons-extended-release-44 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\be655b620097427bbbfa5631f5ea8e06\transformed\material-icons-extended-release\res
+com.z.reminder.app-ui-util-release-45 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\c40e004558b6069d868c625410f0409d\transformed\ui-util-release\res
+com.z.reminder.app-sqlite-2.4.0-46 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\ca7adb0fc7fea848b7ce52badaf0c192\transformed\sqlite-2.4.0\res
+com.z.reminder.app-lifecycle-viewmodel-savedstate-2.8.6-47 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\da4b202d8b450aed6d40f3df8aa4b793\transformed\lifecycle-viewmodel-savedstate-2.8.6\res
+com.z.reminder.app-room-ktx-2.6.1-48 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\db4ed021a46a8ccc018038873b7f6211\transformed\room-ktx-2.6.1\res
+com.z.reminder.app-lifecycle-runtime-ktx-release-49 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\dc07c7539920645a4573569eb8dd43e0\transformed\lifecycle-runtime-ktx-release\res
+com.z.reminder.app-navigation-compose-2.8.3-50 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\dedf0aa32c86a5d109e624ac1a2b33e0\transformed\navigation-compose-2.8.3\res
+com.z.reminder.app-ui-text-release-51 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\dfa8e10ee0efcb8c9cd635a2ae90b355\transformed\ui-text-release\res
+com.z.reminder.app-activity-ktx-1.9.3-52 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\e006f87a0aabacd191c27a87af7e5c9a\transformed\activity-ktx-1.9.3\res
+com.z.reminder.app-material3-release-53 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\e49b460248b6a6b1d6a1ad95fde9bcc8\transformed\material3-release\res
+com.z.reminder.app-navigation-runtime-ktx-2.8.3-54 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\e4ba3169a3846c3f7ad98cd2a340b7bb\transformed\navigation-runtime-ktx-2.8.3\res
+com.z.reminder.app-lifecycle-runtime-compose-release-55 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\f1884d1c8c5a1db6ceedf1a784172988\transformed\lifecycle-runtime-compose-release\res
+com.z.reminder.app-core-runtime-2.2.0-56 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\f4e7700164a36e1cca8bbed07c3c1dad\transformed\core-runtime-2.2.0\res
+com.z.reminder.app-runtime-release-57 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\f7af08de2dc6531d8265d56db61836a2\transformed\runtime-release\res
+com.z.reminder.app-emoji2-1.3.0-58 D:\ANTIGRAVITY AND ANDROID\.gradle\caches\8.10.2\transforms\ffa3ae06903f9ca8f5cee15d2c198004\transformed\emoji2-1.3.0\res
+com.z.reminder.app-resValues-59 F:\ANTIGRAVITY IDE\Z-Reminder\app\build\generated\res\resValues\release
+com.z.reminder.app-packageReleaseResources-60 F:\ANTIGRAVITY IDE\Z-Reminder\app\build\intermediates\incremental\release\packageReleaseResources\merged.dir
+com.z.reminder.app-packageReleaseResources-61 F:\ANTIGRAVITY IDE\Z-Reminder\app\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
+com.z.reminder.app-release-62 F:\ANTIGRAVITY IDE\Z-Reminder\app\build\intermediates\merged_res\release\mergeReleaseResources
+com.z.reminder.app-main-63 F:\ANTIGRAVITY IDE\Z-Reminder\app\src\main\res
+com.z.reminder.app-release-64 F:\ANTIGRAVITY IDE\Z-Reminder\app\src\release\res

@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.z.reminder.app-mergeDebugResources-65:/values-hdpi-v4/values-hdpi-v4.xml",
+            "map": [
+                {
+                    "source": "D:\\ANTIGRAVITY AND ANDROID\\.gradle\\caches\\8.10.2\\transforms\\a84c0a4cc16a38a4d0beb20e1b975d9e\\transformed\\appcompat-1.6.1\\res\\values-hdpi-v4\\values-hdpi-v4.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "13",
+                        "endOffsets": "327"
+                    }
+                }
+            ]
+        }
+    ]
+}

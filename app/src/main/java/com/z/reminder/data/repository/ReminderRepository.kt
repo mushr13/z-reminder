@@ -1,0 +1,97 @@
+package com.z.reminder.data.repository
+
+import com.z.reminder.data.db.ReminderDao
+import com.z.reminder.data.model.PresetType
+import com.z.reminder.data.model.QuickPreset
+import com.z.reminder.data.model.Reminder
+import kotlinx.coroutines.flow.Flow
+import java.util.Calendar
+
+class ReminderRepository(
+    private val reminderDao: ReminderDao
+) {
+    val activeReminders: Flow<List<Reminder>> = reminderDao.getAllActiveReminders()
+    val completedReminders: Flow<List<Reminder>> = reminderDao.getCompletedReminders()
+
+    fun getRemindersForDay(startOfDay: Long, endOfDay: Long): Flow<List<Reminder>> {
+        return reminderDao.getRemindersForDay(startOfDay, endOfDay)
+    }
+
+    fun getOverdueReminders(now: Long = System.currentTimeMillis()): Flow<List<Reminder>> {
+        return reminderDao.getOverdueReminders(now)
+    }
+
+    fun getUpcomingReminders(fromTime: Long = System.currentTimeMillis()): Flow<List<Reminder>> {
+        return reminderDao.getUpcomingReminders(fromTime)
+    }
+
+    suspend fun getReminderById(id: Long): Reminder? = reminderDao.getReminderById(id)
+
+    suspend fun insertReminder(reminder: Reminder): Long = reminderDao.insertReminder(reminder)
+
+    suspend fun updateReminder(reminder: Reminder) = reminderDao.updateReminder(reminder)
+
+    suspend fun deleteReminder(reminder: Reminder) = reminderDao.deleteReminder(reminder)
+
+    suspend fun markCompleted(id: Long) = reminderDao.markCompleted(id)
+
+    suspend fun restoreCompleted(id: Long) = reminderDao.restoreCompleted(id)
+
+    suspend fun snoozeReminder(id: Long, snoozedUntil: Long) = reminderDao.snoozeReminder(id, snoozedUntil)
+
+    /**
+     * Calculates the scheduled time for a Quick Preset.
+     * For FIXED_TIME_STAGGERED (e.g. Office at 12:30 PM):
+     * If a reminder already exists at or near that time today, it automatically staggers
+     * forward by staggerMinutes (+20 min) so alerts don't clash.
+     */
+    suspend fun calculatePresetTargetTime(preset: QuickPreset): Long {
+        val now = System.currentTimeMillis()
+        if (preset.type == PresetType.RELATIVE_MINUTES) {
+            return now + (preset.relativeMinutes * 60 * 1000L)
+        }
+
+        val cal = Calendar.getInstance().apply {
+            timeInMillis = now
+            set(Calendar.HOUR_OF_DAY, preset.targetHour)
+            set(Calendar.MINUTE, preset.targetMinute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        // If target time today has already elapsed, schedule for tomorrow
+        if (cal.timeInMillis <= now) {
+            cal.add(Calendar.DAY_OF_YEAR, 1)
+        }
+
+        // Query existing reminders for that day
+        val startOfDayCal = (cal.clone() as Calendar).apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val endOfDayCal = (cal.clone() as Calendar).apply {
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }
+
+        val existing = reminderDao.getRemindersForDaySnapshot(
+            startOfDay = startOfDayCal.timeInMillis,
+            endOfDay = endOfDayCal.timeInMillis
+        )
+
+        val staggerMillis = preset.staggerMinutes * 60 * 1000L
+        var targetTime = cal.timeInMillis
+
+        // Auto-spacing: Check if any existing reminder is within 10 minutes of targetTime
+        // If so, bump by staggerMinutes until a free window is found
+        while (existing.any { Math.abs(it.dueAt - targetTime) < (10 * 60 * 1000L) }) {
+            targetTime += staggerMillis
+        }
+
+        return targetTime
+    }
+}
