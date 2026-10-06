@@ -15,6 +15,9 @@ interface ReminderDao {
     @Query("SELECT * FROM reminders WHERE status != 'COMPLETED' ORDER BY dueAt ASC")
     fun getAllActiveReminders(): Flow<List<Reminder>>
 
+    @Query("SELECT * FROM reminders WHERE status != 'COMPLETED' ORDER BY dueAt ASC")
+    suspend fun getAllActiveRemindersSnapshot(): List<Reminder>
+
     @Query("SELECT * FROM reminders WHERE status = 'COMPLETED' ORDER BY completedAt DESC")
     fun getCompletedReminders(): Flow<List<Reminder>>
 

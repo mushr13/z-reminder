@@ -82,6 +82,7 @@ class TodayAppWidgetProvider : AppWidgetProvider(), KoinComponent {
 
                     // Click Add button -> Open Quick-Add Shortcut Dialog
                     val addIntent = Intent(context, com.z.reminder.ui.screens.addedit.QuickAddDialogActivity::class.java).apply {
+                        action = "com.z.reminder.ACTION_QUICK_ADD"
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                     }
                     val addPendingIntent = PendingIntent.getActivity(

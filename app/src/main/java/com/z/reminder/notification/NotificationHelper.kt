@@ -22,9 +22,9 @@ class NotificationHelper(val context: Context) {
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     companion object {
-        const val CHANNEL_URGENT = "z_reminder_alarm_heads_up_v2"
+        const val CHANNEL_URGENT = "z_reminder_alarm_heads_up_v3"
         const val CHANNEL_NAG = "z_reminder_nag_v2"
-        const val CHANNEL_PERSISTENT = "z_reminder_persistent"
+        const val CHANNEL_PERSISTENT = "z_reminder_pinned_tasks_v2"
         const val CHANNEL_OFFICE = "z_reminder_office"
 
         const val SUMMARY_NOTIFICATION_ID = 99999
@@ -42,6 +42,14 @@ class NotificationHelper(val context: Context) {
 
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Remove legacy channels so Android doesn't retain old, lower importance settings
+            try {
+                notificationManager.deleteNotificationChannel("z_reminder_alarm_heads_up_v2")
+                notificationManager.deleteNotificationChannel("z_reminder_persistent")
+            } catch (e: Exception) {
+                // Ignore if legacy channel does not exist
+            }
+
             val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
                 ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             val audioAttributes = AudioAttributes.Builder()
@@ -49,7 +57,7 @@ class NotificationHelper(val context: Context) {
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .build()
 
-            // 1. Urgent Reminders & Heads-Up Channel (Max Importance, Alarm sound, Vibration)
+            // 1. Urgent Reminders & Heads-Up Channel (IMPORTANCE_HIGH = Level 4 for top banner pop-down)
             val urgentChannel = NotificationChannel(
                 CHANNEL_URGENT,
                 "Urgent Reminders & Heads-Up Alerts",
@@ -75,16 +83,17 @@ class NotificationHelper(val context: Context) {
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
 
-            // 3. Persistent Notification Shade (Default Importance for sticky pinned tasks)
+            // 3. Persistent Pinned Reminders Channel (Default Importance - Level 3 for notification shade)
             val persistentChannel = NotificationChannel(
                 CHANNEL_PERSISTENT,
-                "Active Tasks Shade",
+                "Pinned Reminders",
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Ongoing summary of today's pending reminders"
-                setShowBadge(false)
+                description = "Sticky pinned reminders kept in the notification panel"
+                setShowBadge(true)
                 setSound(null, null)
                 enableVibration(false)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
 
             // 4. Office Check-ins
@@ -271,6 +280,7 @@ class NotificationHelper(val context: Context) {
             .setContentIntent(openPendingIntent)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(0, "✓ Complete", completePendingIntent)
             .build()
 

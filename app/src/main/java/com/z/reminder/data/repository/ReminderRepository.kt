@@ -41,6 +41,9 @@ class ReminderRepository(
         val id = reminderDao.insertReminder(reminder)
         val created = reminder.copy(id = id)
         alarmScheduler.scheduleExactAlarm(created)
+        if (created.isPinned) {
+            notificationHelper.showPinnedNotification(created)
+        }
         reconcilePersistentNotifications()
         return id
     }
@@ -48,6 +51,11 @@ class ReminderRepository(
     suspend fun updateReminder(reminder: Reminder) {
         reminderDao.updateReminder(reminder)
         alarmScheduler.scheduleExactAlarm(reminder)
+        if (reminder.isPinned) {
+            notificationHelper.showPinnedNotification(reminder)
+        } else {
+            notificationHelper.cancelPinnedNotification(reminder.id)
+        }
         reconcilePersistentNotifications()
     }
 
@@ -124,6 +132,9 @@ class ReminderRepository(
         val newId = reminderDao.insertReminder(duplicate)
         val created = duplicate.copy(id = newId)
         alarmScheduler.scheduleExactAlarm(created)
+        if (created.isPinned) {
+            notificationHelper.showPinnedNotification(created)
+        }
         reconcilePersistentNotifications()
         return newId
     }
@@ -150,7 +161,7 @@ class ReminderRepository(
     }
 
     suspend fun reconcilePersistentNotifications() {
-        val active = activeReminders.firstOrNull() ?: emptyList()
+        val active = reminderDao.getAllActiveRemindersSnapshot()
         notificationHelper.updatePersistentNotifications(active)
         com.z.reminder.widget.TodayAppWidgetProvider.updateAllWidgets(notificationHelper.context)
         for (item in active) {
