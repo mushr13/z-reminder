@@ -22,7 +22,7 @@ class NotificationHelper(val context: Context) {
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     companion object {
-        const val CHANNEL_URGENT = "z_reminder_alarm_heads_up_v3"
+        const val CHANNEL_URGENT = "z_reminder_urgent"
         const val CHANNEL_NAG = "z_reminder_nag_v2"
         const val CHANNEL_PERSISTENT = "z_reminder_pinned_tasks_v2"
         const val CHANNEL_OFFICE = "z_reminder_office"
@@ -42,9 +42,10 @@ class NotificationHelper(val context: Context) {
 
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Remove legacy channels so Android doesn't retain old, lower importance settings
+            // Remove legacy channels so Android cleans up old unused configurations
             try {
                 notificationManager.deleteNotificationChannel("z_reminder_alarm_heads_up_v2")
+                notificationManager.deleteNotificationChannel("z_reminder_alarm_heads_up_v3")
                 notificationManager.deleteNotificationChannel("z_reminder_persistent")
             } catch (e: Exception) {
                 // Ignore if legacy channel does not exist
@@ -60,7 +61,7 @@ class NotificationHelper(val context: Context) {
             // 1. Urgent Reminders & Heads-Up Channel (IMPORTANCE_HIGH = Level 4 for top banner pop-down)
             val urgentChannel = NotificationChannel(
                 CHANNEL_URGENT,
-                "Urgent Reminders & Heads-Up Alerts",
+                "Urgent Reminders",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "High-priority alarms and full heads-up banner alerts while in use"
