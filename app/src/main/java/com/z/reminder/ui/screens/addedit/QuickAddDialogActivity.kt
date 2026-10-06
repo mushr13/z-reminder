@@ -105,7 +105,7 @@ fun QuickAddDialogScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     var title by remember { mutableStateOf("") }
-    var isPinned by remember { mutableStateOf(false) }
+    var isPinned by remember { mutableStateOf(true) }
 
     val initialCal = remember {
         Calendar.getInstance().apply {

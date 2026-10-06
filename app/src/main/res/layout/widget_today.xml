@@ -32,7 +32,7 @@
             android:textSize="32sp"
             android:textStyle="bold" />
 
-        <View
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1" />
@@ -51,10 +51,11 @@
     </LinearLayout>
 
     <!-- Subtle Vertical Divider Line -->
-    <View
+    <FrameLayout
         android:layout_width="1dp"
         android:layout_height="match_parent"
-        android:layout_marginHorizontal="14dp"
+        android:layout_marginLeft="14dp"
+        android:layout_marginRight="14dp"
         android:background="#2EFFFFFF" />
 
     <!-- RIGHT COLUMN: Task List -->

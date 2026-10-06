@@ -57,6 +57,9 @@ class AlarmScheduler(
 
         val clockInfo = AlarmManager.AlarmClockInfo(triggerTime, showPendingIntent)
         alarmManager.setAlarmClock(clockInfo, pendingIntent)
+
+        // Pre-schedule 1-minute delayed backup alert to Telegram (at triggerTime + 60s)
+        scheduleTelegramBackup(reminder.id, (triggerTime - now) + 60_000L)
     }
 
     /**
@@ -179,11 +182,17 @@ class AlarmScheduler(
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
-        } else {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+        val showIntent = Intent(context, MainActivity::class.java).apply {
+            putExtra(EXTRA_REMINDER_ID, reminderId)
         }
+        val showPendingIntent = PendingIntent.getActivity(
+            context,
+            reminderId.toInt() + 500000,
+            showIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val clockInfo = AlarmManager.AlarmClockInfo(triggerTime, showPendingIntent)
+        alarmManager.setAlarmClock(clockInfo, pendingIntent)
     }
 
     /**

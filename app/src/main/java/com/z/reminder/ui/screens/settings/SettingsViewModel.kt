@@ -1,5 +1,6 @@
 package com.z.reminder.ui.screens.settings
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.z.reminder.alarm.AlarmScheduler
@@ -170,6 +171,48 @@ class SettingsViewModel(
                     )
                 )
             }
+        }
+    }
+
+    fun saveHomeWifi(wifiSsids: String) {
+        viewModelScope.launch {
+            val all = placeDao.getAllPlaces().firstOrNull() ?: emptyList()
+            val existing = all.firstOrNull { it.type == PlaceType.HOME }
+            if (existing != null) {
+                placeDao.updatePlace(existing.copy(wifiSsids = wifiSsids.trim()))
+            } else {
+                placeDao.insertPlace(
+                    Place(
+                        name = "Home",
+                        wifiSsids = wifiSsids.trim(),
+                        type = PlaceType.HOME,
+                        isTrackingEnabled = true
+                    )
+                )
+            }
+        }
+    }
+
+    fun getCurrentWifiSsid(context: Context): String? {
+        return try {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
+            val net = cm?.activeNetwork ?: return null
+            val caps = cm.getNetworkCapabilities(net) ?: return null
+            if (!caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)) return null
+
+            var ssid: String? = null
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                val wifiInfo = caps.transportInfo as? android.net.wifi.WifiInfo
+                ssid = wifiInfo?.ssid?.trim('"')
+            }
+            if (ssid.isNullOrBlank() || ssid == "<unknown ssid>") {
+                @Suppress("DEPRECATION")
+                val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? android.net.wifi.WifiManager
+                ssid = wifiManager?.connectionInfo?.ssid?.trim('"')
+            }
+            if (ssid.isNullOrBlank() || ssid == "<unknown ssid>") null else ssid
+        } catch (e: Exception) {
+            null
         }
     }
 

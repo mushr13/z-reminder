@@ -53,7 +53,7 @@ class TelegramNotifier(private val settingsRepository: SettingsRepository) {
             val payload = JSONObject().apply {
                 put("chat_id", chatId)
                 put("text", text)
-                put("parse_mode", "Markdown")
+                put("parse_mode", "HTML")
             }
 
             OutputStreamWriter(conn.outputStream, Charsets.UTF_8).use { writer ->
@@ -81,18 +81,17 @@ class TelegramNotifier(private val settingsRepository: SettingsRepository) {
         val formattedTime = dueZoned.format(timeFormatter)
 
         val sb = StringBuilder()
-        sb.append("🚨 *Z Reminder Alert (1-Min Backup)*\n\n")
-        sb.append("📌 *${escapeMarkdown(reminder.title)}*\n")
-        sb.append("⏰ *Scheduled for:* $formattedTime (Due 1 min ago)\n")
-        sb.append("\n_Sent to Telegram because this reminder is still pending!_")
+        sb.append("🚨 <b>Z Reminder Alert (1-Min Backup)</b>\n\n")
+        sb.append("📌 <b>${escapeHtml(reminder.title)}</b>\n")
+        sb.append("⏰ <b>Scheduled for:</b> $formattedTime (Due 1 min ago)\n\n")
+        sb.append("<i>Sent to Telegram because this reminder is still pending!</i>")
 
         sendMessage(sb.toString())
     }
 
-    private fun escapeMarkdown(text: String): String {
-        return text.replace("_", "\\_")
-            .replace("*", "\\*")
-            .replace("[", "\\[")
-            .replace("`", "\\`")
+    private fun escapeHtml(text: String): String {
+        return text.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
     }
 }

@@ -22,8 +22,8 @@ class NotificationHelper(val context: Context) {
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     companion object {
-        const val CHANNEL_URGENT = "z_reminder_urgent"
-        const val CHANNEL_NAG = "z_reminder_nag"
+        const val CHANNEL_URGENT = "z_reminder_alarm_heads_up_v2"
+        const val CHANNEL_NAG = "z_reminder_nag_v2"
         const val CHANNEL_PERSISTENT = "z_reminder_persistent"
         const val CHANNEL_OFFICE = "z_reminder_office"
 
@@ -37,6 +37,7 @@ class NotificationHelper(val context: Context) {
 
     init {
         createNotificationChannels()
+        notificationManager.cancel(SUMMARY_NOTIFICATION_ID)
     }
 
     private fun createNotificationChannels() {
@@ -48,20 +49,21 @@ class NotificationHelper(val context: Context) {
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .build()
 
-            // 1. Urgent Reminders Channel (High Importance, Alarm sound, Vibration)
+            // 1. Urgent Reminders & Heads-Up Channel (Max Importance, Alarm sound, Vibration)
             val urgentChannel = NotificationChannel(
                 CHANNEL_URGENT,
-                "Urgent Reminders",
+                "Urgent Reminders & Heads-Up Alerts",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "High-priority alarms and full alert notifications"
+                description = "High-priority alarms and full heads-up banner alerts while in use"
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 500, 200, 500, 200, 500)
                 setSound(alarmSound, audioAttributes)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                setBypassDnd(true)
             }
 
-            // 2. Nagging Alerts Channel (Medium-High Importance)
+            // 2. Nagging Alerts Channel (High Importance)
             val nagChannel = NotificationChannel(
                 CHANNEL_NAG,
                 "Nagging Alerts",
@@ -69,14 +71,15 @@ class NotificationHelper(val context: Context) {
             ).apply {
                 description = "Follow-up nagging alerts until a task is completed"
                 enableVibration(true)
+                setSound(alarmSound, audioAttributes)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
 
-            // 3. Persistent Notification Shade (Low Importance, Silent)
+            // 3. Persistent Notification Shade (Default Importance for sticky pinned tasks)
             val persistentChannel = NotificationChannel(
                 CHANNEL_PERSISTENT,
                 "Active Tasks Shade",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Ongoing summary of today's pending reminders"
                 setShowBadge(false)
@@ -100,7 +103,8 @@ class NotificationHelper(val context: Context) {
     }
 
     /**
-     * Shows a firing reminder notification with Complete and Snooze action buttons.
+     * Shows a firing reminder heads-up notification with Complete and 15m Snooze action buttons,
+     * and fullScreenIntent attached to wake lockscreen.
      */
     fun showFiringNotification(reminder: Reminder, isNag: Boolean = false) {
         val openAppIntent = Intent(context, MainActivity::class.java).apply {
@@ -126,11 +130,11 @@ class NotificationHelper(val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Snooze 10m Action Intent
+        // Snooze 15m Action Intent (15 minutes as requested)
         val snoozeIntent = Intent(context, NotificationActionReceiver::class.java).apply {
             action = ACTION_SNOOZE
             putExtra(EXTRA_REMINDER_ID, reminder.id)
-            putExtra(EXTRA_SNOOZE_MINUTES, 10)
+            putExtra(EXTRA_SNOOZE_MINUTES, 15)
         }
         val snoozePendingIntent = PendingIntent.getBroadcast(
             context,
@@ -172,70 +176,19 @@ class NotificationHelper(val context: Context) {
             .setOngoing(true)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setFullScreenIntent(fullScreenPendingIntent, true) // ALWAYS attached for all reminders
             .addAction(0, "✓ Complete", completePendingIntent)
-            .addAction(0, "💤 Snooze 10m", snoozePendingIntent)
-
-        if (reminder.alertStyle == com.z.reminder.data.model.AlertStyle.FULL_SCREEN.name ||
-            reminder.priority == com.z.reminder.data.model.ReminderPriority.HIGH.name) {
-            builder.setFullScreenIntent(fullScreenPendingIntent, true)
-        }
+            .addAction(0, "💤 Snooze 15m", snoozePendingIntent)
 
         notificationManager.notify(reminder.id.toInt(), builder.build())
     }
 
     /**
-     * Updates the persistent ongoing notifications for today's active & overdue tasks.
-     * Attaches deleteIntent so if swiped away, it automatically re-posts unless completed!
+     * Dismisses the old summary notification.
+     * Individual pinned reminder notifications are posted directly instead of a generic summary.
      */
     fun updatePersistentNotifications(reminders: List<Reminder>) {
-        if (reminders.isEmpty()) {
-            notificationManager.cancel(SUMMARY_NOTIFICATION_ID)
-            return
-        }
-
-        val openAppIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        val openPendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            openAppIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val repostIntent = Intent(context, NotificationDismissReceiver::class.java).apply {
-            action = ACTION_REPOST_PERSISTENT
-        }
-        val repostPendingIntent = PendingIntent.getBroadcast(
-            context,
-            9998,
-            repostIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val inboxStyle = NotificationCompat.InboxStyle()
-        val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
-
-        reminders.take(6).forEach { rem ->
-            val time = timeFormat.format(Date(rem.dueAt))
-            inboxStyle.addLine("$time - ${rem.title}")
-        }
-
-        val count = reminders.size
-        val summaryText = if (count == 1) "1 pending reminder" else "$count pending reminders"
-
-        val summaryNotification = NotificationCompat.Builder(context, CHANNEL_PERSISTENT)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Z Reminder: $summaryText")
-            .setContentText("Tap to open your daily tasks")
-            .setStyle(inboxStyle)
-            .setContentIntent(openPendingIntent)
-            .setDeleteIntent(repostPendingIntent) // Re-post if swiped
-            .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
-
-        notificationManager.notify(SUMMARY_NOTIFICATION_ID, summaryNotification)
+        notificationManager.cancel(SUMMARY_NOTIFICATION_ID)
     }
 
     fun showOfficeArrivalNotification(placeName: String, taskCount: Int) {
@@ -317,8 +270,8 @@ class NotificationHelper(val context: Context) {
             .setContentText("Due $dueStr")
             .setContentIntent(openPendingIntent)
             .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .addAction(R.drawable.ic_launcher_foreground, "Done", completePendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .addAction(0, "✓ Complete", completePendingIntent)
             .build()
 
         notificationManager.notify((reminder.id + 800000).toInt(), notification)
@@ -331,6 +284,7 @@ class NotificationHelper(val context: Context) {
     fun cancelNotification(reminderId: Long) {
         notificationManager.cancel(reminderId.toInt())
         cancelPinnedNotification(reminderId)
+        notificationManager.cancel(SUMMARY_NOTIFICATION_ID)
     }
 
     fun cancelAll() {

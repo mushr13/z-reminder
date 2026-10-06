@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Send
+import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -61,6 +62,7 @@ fun SettingsScreen(
     val telegramEnabled by viewModel.telegramEnabled.collectAsState()
     val telegramBotToken by viewModel.telegramBotToken.collectAsState()
     val telegramChatId by viewModel.telegramChatId.collectAsState()
+    val places by viewModel.places.collectAsState()
     val presets = viewModel.getQuickPresets()
 
     Column(
@@ -286,11 +288,20 @@ fun SettingsScreen(
                 }
             }
 
-            // Office Presence & Wi-Fi Check-in Card
-            val places by viewModel.places.collectAsState()
+            // Wi-Fi Presence & Locations Card (Home & Office)
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val homePlace = places.firstOrNull { it.type == com.z.reminder.data.model.PlaceType.HOME }
             val officePlace = places.firstOrNull { it.type == com.z.reminder.data.model.PlaceType.OFFICE }
-            var editingSsid by androidx.compose.runtime.remember(officePlace?.wifiSsids) {
+            val currentWifi = androidx.compose.runtime.remember { viewModel.getCurrentWifiSsid(context) }
+
+            var editingHomeWifi by androidx.compose.runtime.remember(homePlace?.wifiSsids) {
+                androidx.compose.runtime.mutableStateOf(homePlace?.wifiSsids ?: "")
+            }
+            var editingOfficeWifi by androidx.compose.runtime.remember(officePlace?.wifiSsids) {
                 androidx.compose.runtime.mutableStateOf(officePlace?.wifiSsids ?: "")
+            }
+            var wifiFeedback by androidx.compose.runtime.remember {
+                androidx.compose.runtime.mutableStateOf<String?>(null)
             }
 
             Card(
@@ -299,48 +310,145 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Rounded.Schedule,
-                            contentDescription = null,
-                            tint = PrimaryViolet,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Office Wi-Fi & Check-in",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Rounded.Wifi,
+                                contentDescription = null,
+                                tint = PrimaryViolet,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Wi-Fi Presence (Home & Office)",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "The app detects your Wi-Fi to know when you are Home vs Office so alerts only trigger where you actually are.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Current Wi-Fi Status Bar
+                    androidx.compose.material3.Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(12.dp)
+                        ) {
+                            Text(
+                                text = "Currently Connected:",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (!currentWifi.isNullOrBlank()) "\"$currentWifi\"" else "Not on Wi-Fi / Unknown",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                color = if (!currentWifi.isNullOrBlank()) Color(0xFF10B981) else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                    if (!currentWifi.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            androidx.compose.material3.OutlinedButton(
+                                onClick = {
+                                    editingHomeWifi = currentWifi
+                                    viewModel.saveHomeWifi(currentWifi)
+                                    wifiFeedback = "Home Wi-Fi set to \"$currentWifi\"!"
+                                },
+                                shape = com.z.reminder.ui.theme.ButtonShape,
+                                modifier = Modifier.weight(1f).height(38.dp)
+                            ) {
+                                Text("Set as Home", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                            }
+
+                            androidx.compose.material3.OutlinedButton(
+                                onClick = {
+                                    editingOfficeWifi = currentWifi
+                                    viewModel.saveOfficeWifi(currentWifi)
+                                    wifiFeedback = "Office Wi-Fi set to \"$currentWifi\"!"
+                                },
+                                shape = com.z.reminder.ui.theme.ButtonShape,
+                                modifier = Modifier.weight(1f).height(38.dp)
+                            ) {
+                                Text("Set as Office", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Home Wi-Fi Input
                     androidx.compose.material3.OutlinedTextField(
-                        value = editingSsid,
-                        onValueChange = { editingSsid = it },
-                        label = { Text("Office Wi-Fi Name (SSID)") },
-                        placeholder = { Text("e.g., Office_5G, MyWorkplace") },
+                        value = editingHomeWifi,
+                        onValueChange = { editingHomeWifi = it },
+                        label = { Text("Home Wi-Fi Network Name") },
                         singleLine = true,
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Office Wi-Fi Input
+                    androidx.compose.material3.OutlinedTextField(
+                        value = editingOfficeWifi,
+                        onValueChange = { editingOfficeWifi = it },
+                        label = { Text("Office Wi-Fi Network Name") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     androidx.compose.material3.Button(
-                        onClick = { viewModel.saveOfficeWifi(editingSsid) },
+                        onClick = {
+                            viewModel.saveHomeWifi(editingHomeWifi)
+                            viewModel.saveOfficeWifi(editingOfficeWifi)
+                            wifiFeedback = "Saved Home & Office Wi-Fi locations!"
+                        },
                         shape = com.z.reminder.ui.theme.ButtonShape,
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = PrimaryViolet),
-                        modifier = Modifier.align(Alignment.End)
+                        modifier = Modifier.fillMaxWidth().height(42.dp)
                     ) {
-                        Text("Save Office Wi-Fi", fontWeight = FontWeight.SemiBold)
+                        Text("Save Wi-Fi Locations", fontWeight = FontWeight.Bold)
+                    }
+
+                    wifiFeedback?.let { msg ->
+                        Text(
+                            text = "✓ $msg",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = com.z.reminder.ui.theme.SuccessGreen
+                            ),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
                     }
                 }
             }
 
             // Full-Screen Alert Screen Showcase & Simulator
-            val context = androidx.compose.ui.platform.LocalContext.current
             Card(
                 shape = CardShape,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),

@@ -375,7 +375,7 @@ fun FullScreenAlertContent(
                             .fillMaxWidth()
                             .padding(bottom = 16.dp)
                     ) {
-                        listOf(5 to "5m", 10 to "10m", 30 to "30m", 60 to "1h").forEach { (mins, label) ->
+                        listOf(10 to "10m", 15 to "15m", 30 to "30m", 60 to "1h").forEach { (mins, label) ->
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier

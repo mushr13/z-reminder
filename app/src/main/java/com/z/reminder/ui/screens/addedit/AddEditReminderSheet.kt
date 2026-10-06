@@ -100,7 +100,7 @@ fun AddEditReminderSheet(
 
     var title by remember { mutableStateOf(existingReminder?.title ?: "") }
     var priority by remember { mutableStateOf(existingReminder?.priority ?: ReminderPriority.NORMAL.name) }
-    var isPinned by remember { mutableStateOf(existingReminder?.isPinned ?: false) }
+    var isPinned by remember { mutableStateOf(existingReminder?.isPinned ?: true) }
 
     val initialCal = remember {
         Calendar.getInstance().apply {

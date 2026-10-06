@@ -74,31 +74,49 @@ class OfficePresenceMonitor(
     private fun checkCurrentNetwork(network: Network, capabilities: NetworkCapabilities? = null) {
         scope.launch {
             val caps = capabilities ?: connectivityManager.getNetworkCapabilities(network) ?: return@launch
-            if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return@launch
+            if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                // Not on Wi-Fi (e.g. cellular data) -> Presence lost
+                stateManager.onPresenceLost(System.currentTimeMillis())
+                return@launch
+            }
 
             var currentSsid: String? = null
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val wifiInfo = caps.transportInfo as? WifiInfo
                 currentSsid = wifiInfo?.ssid?.trim('"')
             }
+            if (currentSsid.isNullOrBlank() || currentSsid == "<unknown ssid>") {
+                @Suppress("DEPRECATION")
+                val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? android.net.wifi.WifiManager
+                currentSsid = wifiManager?.connectionInfo?.ssid?.trim('"')
+            }
+
+            // If SSID cannot be identified, never falsely trigger office presence!
+            if (currentSsid.isNullOrBlank() || currentSsid == "<unknown ssid>") {
+                return@launch
+            }
 
             val places = placeDao.getAllPlaces().firstOrNull() ?: emptyList()
             val officePlace = places.firstOrNull { it.type == PlaceType.OFFICE && it.isTrackingEnabled }
+            val homePlace = places.firstOrNull { it.type == PlaceType.HOME && it.isTrackingEnabled }
 
-            if (officePlace != null) {
-                val officeSsids = officePlace.wifiSsids.split(",").map { it.trim().trim('"') }.filter { it.isNotBlank() }
-                val isOfficeNetwork = if (currentSsid != null && currentSsid != "<unknown ssid>") {
-                    officeSsids.any { it.equals(currentSsid, ignoreCase = true) }
-                } else {
-                    // Fallback: If SSID is protected by permission on Honor/Android 16, but office wifi is configured
-                    true
-                }
+            val officeSsids = officePlace?.wifiSsids?.split(",")?.map { it.trim().trim('"') }?.filter { it.isNotBlank() } ?: emptyList()
+            val homeSsids = homePlace?.wifiSsids?.split(",")?.map { it.trim().trim('"') }?.filter { it.isNotBlank() } ?: emptyList()
 
-                val now = System.currentTimeMillis()
-                if (isOfficeNetwork) {
-                    val event = stateManager.onPresenceDetected(now)
-                    handleStateEvent(event, officePlace.name)
-                }
+            val isOfficeNetwork = officeSsids.any { it.equals(currentSsid, ignoreCase = true) }
+            val isHomeNetwork = homeSsids.any { it.equals(currentSsid, ignoreCase = true) }
+
+            val now = System.currentTimeMillis()
+            if (isHomeNetwork) {
+                // At home: reset office presence so office alarms NEVER fire at home
+                stateManager.onPresenceLost(now)
+            } else if (isOfficeNetwork) {
+                // Confirmed at office Wi-Fi
+                val event = stateManager.onPresenceDetected(now)
+                handleStateEvent(event, officePlace?.name ?: "Office")
+            } else {
+                // Unknown Wi-Fi
+                stateManager.onPresenceLost(now)
             }
         }
     }

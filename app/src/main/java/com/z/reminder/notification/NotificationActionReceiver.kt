@@ -40,7 +40,7 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
                     }
 
                     NotificationHelper.ACTION_SNOOZE -> {
-                        val minutes = intent.getIntExtra(NotificationHelper.EXTRA_SNOOZE_MINUTES, 10)
+                        val minutes = intent.getIntExtra(NotificationHelper.EXTRA_SNOOZE_MINUTES, 15)
                         val snoozeUntil = System.currentTimeMillis() + (minutes * 60 * 1000L)
 
                         reminderRepository.snoozeReminder(reminderId, snoozeUntil)

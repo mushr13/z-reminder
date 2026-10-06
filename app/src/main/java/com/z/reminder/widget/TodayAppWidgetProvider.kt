@@ -61,8 +61,7 @@ class TodayAppWidgetProvider : AppWidgetProvider(), KoinComponent {
                 val endOfDay = cal.timeInMillis
 
                 val todayReminders = database.reminderDao()
-                    .getRemindersForDay(startOfDay, endOfDay)
-                    .firstOrNull() ?: emptyList()
+                    .getRemindersForDaySnapshot(startOfDay, endOfDay)
 
                 val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
 
