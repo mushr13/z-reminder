@@ -59,7 +59,8 @@ class AlarmScheduler(
         alarmManager.setAlarmClock(clockInfo, pendingIntent)
 
         // Pre-schedule 1-minute delayed backup alert to Telegram (at triggerTime + 60s)
-        scheduleTelegramBackup(reminder.id, (triggerTime - now) + 60_000L)
+        val delayToTrigger = (triggerTime - now).coerceAtLeast(0L)
+        scheduleTelegramBackup(reminder.id, delayToTrigger + 60_000L)
     }
 
     /**
@@ -154,6 +155,11 @@ class AlarmScheduler(
             nagIntent,
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
         )
+        if (pendingNag != null) {
+            alarmManager.cancel(pendingNag)
+            pendingNag.cancel()
+        }
+
         // Cancel telegram backup alarm
         val telegramIntent = Intent(context, AlarmReceiver::class.java).apply {
             action = ACTION_TELEGRAM_BACKUP_FIRE

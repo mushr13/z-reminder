@@ -47,11 +47,13 @@ class AlarmReceiver : BroadcastReceiver(), KoinComponent {
                 val reminder = reminderDao.getReminderById(reminderId)
                 if (reminder != null && reminder.status != "COMPLETED") {
                     if (isTelegramBackup) {
-                        // 1 minute has elapsed since phone alarm fired and task is still uncompleted!
-                        try {
-                            telegramNotifier.notifyReminderBackupAlert(reminder)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+                        // 1 minute has elapsed since phone alarm fired: only send if still actively FIRING (unhandled)
+                        if (reminder.status == "FIRING") {
+                            try {
+                                telegramNotifier.notifyReminderBackupAlert(reminder)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
                     } else {
                         // Regular or nag alarm firing on phone

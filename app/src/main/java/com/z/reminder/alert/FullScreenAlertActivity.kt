@@ -121,8 +121,6 @@ class FullScreenAlertActivity : ComponentActivity() {
                     coroutineScope.launch {
                         if (!isSimulation && reminderId != -1L) {
                             repository.markCompleted(reminderId)
-                            alarmScheduler.cancelAlarm(reminderId)
-                            notificationHelper.cancelNotification(reminderId)
                         }
                         finish()
                     }

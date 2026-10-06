@@ -33,7 +33,7 @@ interface ReminderDao {
     @Query("SELECT * FROM reminders WHERE dueAt >= :fromTime AND status != 'COMPLETED' ORDER BY dueAt ASC")
     fun getUpcomingReminders(fromTime: Long): Flow<List<Reminder>>
 
-    @Query("SELECT * FROM reminders WHERE status = 'FIRING' OR (status = 'SNOOZED' AND snoozedUntil <= :now)")
+    @Query("SELECT * FROM reminders WHERE status != 'COMPLETED' AND (dueAt > :now OR (snoozedUntil IS NOT NULL AND snoozedUntil > :now) OR status = 'FIRING' OR (status = 'SNOOZED' AND snoozedUntil <= :now)) ORDER BY dueAt ASC")
     suspend fun getPendingAlerts(now: Long): List<Reminder>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

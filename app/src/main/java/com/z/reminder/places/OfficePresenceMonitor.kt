@@ -108,8 +108,8 @@ class OfficePresenceMonitor(
 
             val now = System.currentTimeMillis()
             if (isHomeNetwork) {
-                // At home: reset office presence so office alarms NEVER fire at home
-                stateManager.onPresenceLost(now)
+                // At home: immediately reset office presence so office alarms NEVER fire at home
+                stateManager.reset()
             } else if (isOfficeNetwork) {
                 // Confirmed at office Wi-Fi
                 val event = stateManager.onPresenceDetected(now)

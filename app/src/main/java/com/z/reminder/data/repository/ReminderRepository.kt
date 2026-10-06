@@ -138,6 +138,7 @@ class ReminderRepository(
     }
 
     suspend fun snoozeReminder(id: Long, snoozedUntil: Long) {
+        alarmScheduler.cancelAlarm(id)
         reminderDao.snoozeReminder(id, snoozedUntil)
         notificationHelper.cancelNotification(id)
         val reminder = reminderDao.getReminderById(id)
